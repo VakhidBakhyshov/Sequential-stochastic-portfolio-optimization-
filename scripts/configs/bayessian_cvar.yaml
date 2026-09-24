@@ -1,0 +1,99 @@
+balance: 1000.0
+window: rolling
+lookback_years: 3
+initial_weight: equal
+portfolio: filtered
+# portfolio: sp500_benchmark
+use_backtest_engine: false
+output_folder: advanced_bayesian_walk_forward_no_max
+is_previous: false # IMPROVING ALL STRATEGIES (if == is_previous: true - strong changing in rebalancing and decreasing pnl)
+seed: 42
+
+
+# model: # LOW-AVERAGE case (LOW - where is_previous: false, AVERAGE - where is_previous: true)
+#   - type: bayessian
+#   - mean_return: historical
+#   - distribution: t_student
+#   - posterior: empirical_bayes
+#   - n_samples: 2000
+#   - horizon: 21
+#   - cov_method: oas
+#   - mean_shrink: 0.50
+
+
+# model: # LOW-AVERAGE case (LOW - where is_previous: false, AVERAGE - where is_previous: true)
+#   - type: bayessian
+#   - mean_return: sampled
+#   - distribution: t_student
+#   - posterior: empirical_bayes
+#   - n_samples: 2000
+#   - df: 5
+#   - cov_method: oas
+#   - detone_n: 0
+#   - seed: 42
+
+
+# model:
+#   - type: bayessian
+#   - matrix_type: fast
+#   - mean_return: sampled
+#   - distribution: t_student
+#   - posterior: horseshoe
+#   # - is_sampled_mean: true
+#   - n_samples: 1000
+#   - horizon: 21
+#   - cov_method: ledoit_wolf
+#   - random_state: 42
+
+
+model: # BEST CASE
+  - type: bayessian
+  - matrix_type: fast
+  - mean_return: sampled
+  - distribution: normal
+  - posterior: horseshoe
+  # - is_sampled_mean: true
+  - n_samples: 1000
+  - horizon: 21
+  - cov_method: ledoit_wolf
+  - random_state: 42
+
+
+optimizer:
+  - type: bayessian
+    min_weight: 0.005
+    max_weight: 0.12
+    task_type: "cvar_returns"
+    confidence_level: 0.99
+    turnover_penalty: 1.0
+    penalty_type: L1
+    is_all_methods: false
+    constraint_max_weight: false
+
+
+# optimizer:
+#   - type: black_litterman
+#     # is_all_methods: true
+
+
+# optimizer:
+#   - type: markowitz
+#     method: SLSQP
+#     min_weight: 0.005
+#     max_weight: 0.12
+#     task_type: "max_sharpe"
+#     turnover_penalty: 0.5
+#     penalty_type: L2
+#     is_all_methods: false
+
+
+execution:
+  - type: base_exec
+    return_type: "log-returns"
+    is_past: True  # for run.py
+    # is_past: False # for new_run2.py
+    # fixed_alpha: 0.50
+    use_dynamic_alpha: true
+    c_bps: 1e-3 # high
+    # c_bps: 0.0025 # a realistic ETF average
+    # c_bps: 1e-4 # low
