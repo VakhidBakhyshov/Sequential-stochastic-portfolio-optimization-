@@ -1,0 +1,25 @@
+universe,arm,Cumul%,Ann%,Vol%,Sharpe,Sortino,MaxDD%,Calmar
+original (~220),Static,104.4,10.89,12.92,0.712,1.128,-17.61,0.618
+original (~220),Dynamic base,91.6,9.86,12.43,0.66,0.974,-16.56,0.595
+original (~220),+Realized-vol,81.4,8.99,9.44,0.75,1.274,-10.75,0.836
+original (~220),+Model-CVaR,82.1,9.05,9.09,0.781,1.161,-9.56,0.947
+original (~220),+Combined (Primary),74.3,8.36,7.37,0.859,1.428,-6.55,1.278
+original (~220),Benchmark 1/N,103.2,10.8,14.7,0.638,0.846,-21.3,0.507
+original (~220),Benchmark Markowitz-maxSh,30.1,3.88,6.45,0.313,0.312,-17.76,0.219
+original (~220),Benchmark Markowitz-minVar,15.0,2.04,2.17,0.019,0.015,-7.04,0.289
+matrix1 (~300),Static,73.0,8.25,14.59,0.48,0.569,-20.12,0.41
+matrix1 (~300),Dynamic base,53.4,6.38,14.32,0.365,0.404,-20.43,0.312
+matrix1 (~300),+Realized-vol,53.7,6.41,10.11,0.468,0.648,-12.98,0.494
+matrix1 (~300),+Model-CVaR,46.8,5.71,12.14,0.355,0.371,-20.43,0.28
+matrix1 (~300),+Combined (Primary),48.4,5.87,8.74,0.469,0.606,-12.98,0.452
+matrix1 (~300),Benchmark 1/N,102.6,10.75,14.46,0.643,0.839,-21.43,0.501
+matrix1 (~300),Benchmark Markowitz-maxSh,32.5,4.16,6.11,0.371,0.364,-14.35,0.29
+matrix1 (~300),Benchmark Markowitz-minVar,17.6,2.37,1.59,0.226,0.204,-3.62,0.655
+matrix2 (cap400),Static,83.5,9.17,14.73,0.535,0.776,-23.49,0.391
+matrix2 (cap400),Dynamic base,84.5,9.26,14.51,0.547,0.799,-21.34,0.434
+matrix2 (cap400),+Realized-vol,66.0,7.6,10.57,0.558,0.875,-16.89,0.45
+matrix2 (cap400),+Model-CVaR,79.4,8.82,13.09,0.56,0.766,-16.52,0.534
+matrix2 (cap400),+Combined (Primary),62.8,7.3,9.7,0.571,0.86,-14.17,0.515
+matrix2 (cap400),Benchmark 1/N,90.9,9.8,13.62,0.61,0.795,-20.52,0.478
+matrix2 (cap400),Benchmark Markowitz-maxSh,33.2,4.23,5.46,0.422,0.421,-12.92,0.328
+matrix2 (cap400),Benchmark Markowitz-minVar,16.7,2.26,1.35,0.179,0.157,-2.52,0.896
