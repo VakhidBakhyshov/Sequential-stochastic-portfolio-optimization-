@@ -1,0 +1,77 @@
+balance: 1000.0
+window: rolling
+lookback_years: 3
+initial_weight: equal
+portfolio: filtered
+# portfolio: sp500_benchmark
+use_backtest_engine: false
+output_folder: advanced_ml_walk_forward
+is_previous: true
+seed: 42
+
+
+model:
+  - type: ml_regression
+  # - ml_type: ridge # best
+  # - ml_type: linear
+  - ml_type: lasso
+  - horizon: 21             # <-- Forward prediction days (approx 1 month)
+  - cv_splits: 3            # <-- Number of time-series cross-validation splits
+  - n_samples: 1000         # <-- Keeps compatibility with your CVaR optimizer
+  - random_state: 42
+
+
+optimizer:
+  - type: bayessian
+    min_weight: 0.005
+    max_weight: 0.12
+    task_type: "cvar_returns"
+    confidence_level: 0.99
+    turnover_penalty: 1.0
+    penalty_type: L1
+    is_all_methods: false
+
+
+# optimizer:
+#   - type: bayessian
+#     method: SLSQP
+#     min_weight: 0.001
+#     max_weight: 0.10
+#     task_type: "mean_cvar_sharpe"
+#     confidence_level: 0.95
+#     min_tail_count: 20
+#     turnover_penalty: 0.05
+#     penalty_type: L1
+#     is_all_methods: False
+#     return_weight: 1.0
+#     cvar_weight: 1.0
+#     sharpe_weight: 0.25
+#     vol_weight: 0.0
+
+
+# optimizer:
+#   - type: markowitz
+#     method: SLSQP
+#     min_weight: 0.01
+#     max_weight: 0.1
+#     task_type: "max_sharpe"
+#     turnover_penalty: 0.5
+#     penalty_type: L2
+#     is_all_methods: false
+
+
+# optimizer:
+#   - type: black_litterman
+#     # is_all_methods: true
+
+
+execution:
+  - type: base_exec
+    return_type: "log-returns"
+    is_past: True  # for run.py
+    # is_past: False # for new_run2.py
+    # fixed_alpha: 0.50
+    use_dynamic_alpha: true
+    c_bps: 1e-3 # high
+    # c_bps: 0.0025 # a realistic ETF average
+    # c_bps: 1e-4 # low
