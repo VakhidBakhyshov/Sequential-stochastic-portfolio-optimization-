@@ -1,0 +1,47 @@
+================================================================================================
+(a) DIAL CORRELATION corr(k_fast, k_slow) BY SUBSAMPLE  [H2]
+================================================================================================
+  full sample (n=83)            : +0.447
+  2020 (n=12)                    : +0.107
+  2022 (n=12)                    : -0.276
+  stress pooled 2020+2022 (n=24) : +0.247
+  calm remainder (n=59)           : +0.422
+
+================================================================================================
+(b) FRACTION OF DATES WITH beta* = beta_t  [H5]  (beta*=0.95 fixed; beta_t adaptive)
+================================================================================================
+  months: 83 | beta_t range [0.920, 0.971]
+  fraction with |beta_t - 0.95| < 0.005 : 0.181
+  fraction beta_t > 0.95 (deeper than beta*): 0.265 | beta_t < 0.95: 0.554
+
+================================================================================================
+(c) SHUFFLED-k PLACEBO  [H4]  (distribution-matched, timing destroyed; 2000 permutations)
+================================================================================================
+  dynamic:              MaxDD  -6.55%   Sharpe 0.859
+  placebo distribution: MaxDD mean -13.53% [5th -20.37, 95th -7.75]   Sharpe mean 0.611
+  P(dynamic MDD shallower than placebo) = 0.993
+  P(dynamic Sharpe > placebo)           = 0.946
+
+================================================================================================
+(d) OVERLAY TURNOVER AND BREAK-EVEN COST  [H7]
+================================================================================================
+  fast (k_rv)    mean|dk| = 0.1145/mo   annual one-way overlay turnover = 1.37x
+  slow (k_mc)    mean|dk| = 0.0322/mo   annual one-way overlay turnover = 0.39x
+  combined       mean|dk| = 0.0827/mo   annual one-way overlay turnover = 0.99x
+  break-even INCREMENTAL overlay cost vs unmanaged base: 154 bps per unit turnover
+
+================================================================================================
+(f) PROP 5(b) CHECK: predicted mechanical MDD = kbar x MDD(1)
+================================================================================================
+  kbar = 0.699   MDD(1) = -16.56%
+  predicted mechanical MDD = kbar*MDD(1) = -11.58%
+  measured constant-k MDD                = -11.13%
+  dynamic MDD                            = -6.55%
+
+================================================================================================
+(g) SIGN VIOLATIONS OF THE UNCENTRED SIGNAL (our one-day-scale pipeline)  [H5]
+================================================================================================
+  months with cvar_model <= 0 : 0 of 83
+  cvar_model: mean 0.0198  min 0.0086
+
+saved fig_exposure_paths.png

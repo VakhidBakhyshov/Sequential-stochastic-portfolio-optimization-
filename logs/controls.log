@@ -1,0 +1,35 @@
+/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/pandas/core/internals/blocks.py:347: RuntimeWarning: overflow encountered in exp
+  result = func(self.values, **kwargs)
+================================================================================================
+CONTROL B - does the gain come from TIMING or merely from holding less risk?
+================================================================================================
+average gross exposure: combined overlay k_bar = 0.699 | realized-vol overlay = 0.835
+
+                                             Ann     Vol  Sharpe  Sortino   MaxDD  Calmar  CVaR95
+Dynamic base (unscaled, k=1)               9.860  12.429   0.660    0.974 -16.562   0.595  -6.598
+Constant exposure k=0.70 (matched)         7.618   8.693   0.660    0.997 -11.134   0.684  -4.565
+DYNAMIC combined overlay (same avg k)      8.365   7.365   0.859    1.428  -6.545   1.278  -3.644
+Constant exposure k=0.84 (matched to RV)   8.646  10.384   0.660    0.986 -13.603   0.636  -5.485
+DYNAMIC realized-vol overlay (same avg k)  8.995   9.443   0.750    1.274 -10.754   0.836  -4.410
+
+  drawdown decomposition (combined): unscaled -16.56%  ->  constant-k -11.13%  ->  dynamic -6.55%
+  share of the drawdown reduction that is MECHANICAL (holding less): 54.2%
+  share attributable to TIMING: 45.8%
+
+  Sharpe: unscaled 0.660 | constant-k 0.660 (identical by construction) | dynamic 0.859
+  => constant scaling CANNOT change Sharpe; the entire Sharpe gain is from time-variation in k.
+  [bootstrap] Combined vs constant-k       dSharpe=+0.199 P=0.875 | dMaxDD=+0.046 P=0.875
+  [bootstrap] Realized-vol vs constant-k   dSharpe=+0.090 P=0.792 | dMaxDD=+0.028 P=0.868
+
+================================================================================================
+CONTROL A - is the risk overlay a GENERAL tool, or specific to our allocator?
+================================================================================================
+                                                  Ann     Vol  Sharpe  Sortino   MaxDD  Calmar  CVaR95
+1/N (unmanaged)                                10.795  14.696   0.638    0.846 -21.300   0.507  -8.795
+1/N + own realized-vol dial (avg k=0.87)        9.060  11.483   0.640    1.047 -15.627   0.580  -6.125
+1/N + our combined exposure path (avg k=0.70)   7.171   9.802   0.553    0.694 -17.284   0.415  -5.932
+Our combined (managed) strategy                 8.365   7.365   0.859    1.428  -6.545   1.278  -3.644
+  [bootstrap] 1/N+ownRV vs 1/N     dSharpe=+0.003 P=0.484 | dMaxDD=+0.057 P=0.949
+  [bootstrap] 1/N+ourK vs 1/N      dSharpe=-0.084 P=0.293 | dMaxDD=+0.040 P=0.973
+
+saved controls_results.csv

@@ -1,0 +1,13 @@
+   signal                   target  pearson     p  spearman   p_s  n
+      raw  next-month realized vol    0.183 0.100     0.485 0.000 82
+      raw next-month realized CVaR    0.207 0.063     0.419 0.000 82
+      raw    within-month drawdown   -0.211 0.057    -0.444 0.000 82
+      raw        next-month return   -0.131 0.243    -0.173 0.120 82
+  centred  next-month realized vol    0.304 0.006     0.613 0.000 82
+  centred next-month realized CVaR    0.323 0.003     0.552 0.000 82
+  centred    within-month drawdown   -0.315 0.004    -0.527 0.000 82
+  centred        next-month return   -0.154 0.168    -0.209 0.059 82
+vol_model  next-month realized vol    0.308 0.005     0.617 0.000 82
+vol_model next-month realized CVaR    0.327 0.003     0.559 0.000 82
+vol_model    within-month drawdown   -0.320 0.003    -0.531 0.000 82
+vol_model        next-month return   -0.153 0.169    -0.210 0.059 82

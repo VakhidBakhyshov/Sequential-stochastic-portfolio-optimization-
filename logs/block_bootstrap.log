@@ -1,0 +1,34 @@
+====================================================================================================
+STAGE 1 - monthly (H=21) shape ratio c = CVaR95/sigma.  Gaussian theory = 2.063
+n=82 dates, S=30000, MC noise floor on c ~ 0.052
+====================================================================================================
+variant           mean  sd(time)     min     max  x-port spread
+  gauss          2.062     0.009   2.042   2.084          0.008
+  fhs_iid        2.148     0.042   2.076   2.246          0.028
+  fhs_block      2.436     0.310   2.007   3.024          0.180
+  raw_block      2.577     0.319   2.073   3.134          0.152
+
+time-variation gain vs iid:  fhs_block 7.38x | raw_block 7.60x
+stress-window c (2020-03..2020-07), raw_block: [2.197, 2.901, 2.869, 2.874, 2.846]
+top-5 fattest raw_block dates: ['2022-08', '2022-10', '2022-11', '2022-12', '2022-09']
+
+====================================================================================================
+STAGE 2 - does monthly shape predict next-month outcomes BEYOND volatility?
+====================================================================================================
+n=81; |r| needed for ~95% significance = 0.222
+(control: corr(sigma_model, real_vol) = +0.533)
+
+variant     target          corr  partial|sigma   verdict
+  fhs_iid   real_vol      +0.241         -0.031
+  fhs_iid   real_worst    +0.220         -0.040
+  fhs_iid   real_shape    -0.040         -0.036
+  fhs_block real_vol      +0.325         +0.021
+  fhs_block real_worst    +0.310         +0.023
+  fhs_block real_shape    +0.060         +0.087
+  raw_block real_vol      +0.347         -0.005
+  raw_block real_worst    +0.352         +0.031
+  raw_block real_shape    +0.095         +0.142
+
+VERDICT: NO incremental predictive content beyond volatility for any variant
+
+saved block_bootstrap_results.csv

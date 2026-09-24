@@ -1,0 +1,11 @@
+  seed 7: folder grid_S5000_H60_s7 missing
+  seed 2024: folder grid_S5000_H60_s2024 missing
+                           Ann     Vol  Sharpe  Sortino   MaxDD  CVaR95  mean_k    held  turn_target_yr  binding_share  P(comb>fast) Sharpe  P(comb>fast) shallowerDD  P(comb>base) Sharpe  P(comb>base) shallowerDD  corr(kF,kS)
+seed           arm                                                                                                                                                                                                               
+42 (canonical) base      9.860  12.429   0.660    0.974 -16.562  -6.598   1.000  10.711           0.987          0.349                  NaN                       NaN                  NaN                       NaN          NaN
+               fast      8.995   9.443   0.750    1.274 -10.754  -4.410   0.835     NaN             NaN            NaN                  NaN                       NaN                  NaN                       NaN          NaN
+               slow      9.050   9.091   0.781    1.161  -9.555  -4.934   0.804     NaN             NaN            NaN                  NaN                       NaN                  NaN                       NaN          NaN
+               combined  8.365   7.365   0.859    1.428  -6.545  -3.644   0.699     NaN             NaN            NaN                0.859                     0.979                0.875                     0.998        0.447
+
+across seeds — corr of monthly BASE returns / mean weight overlap of target books (sum of min weights):
+saved seed_sensitivity.csv

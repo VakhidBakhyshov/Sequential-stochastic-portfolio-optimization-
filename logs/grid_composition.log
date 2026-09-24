@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/Users/mac/Downloads/Group_1/grid_composition.py", line 47, in <module>
+    main()
+    ~~~~^^
+  File "/Users/mac/Downloads/Group_1/grid_composition.py", line 39, in main
+    T = pd.DataFrame(rows).set_index(["scen", "hist", "seed"])
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/pandas/core/frame.py", line 6989, in set_index
+    raise KeyError(f"None of {missing} are in the columns")
+KeyError: "None of ['scen', 'hist', 'seed'] are in the columns"

@@ -1,0 +1,128 @@
+=== fig_universe_and_decorr.py ===
+universe chart: n=84 months, median 220, range [205, 231]
+decorrelation chart: rho = +0.302, n = 83
+=== fig_pipeline.py ===
+fig_pipeline.py:110: UserWarning: Glyph 8315 (\N{SUPERSCRIPT MINUS}) missing from font(s) Times New Roman.
+  fig.tight_layout()
+fig_pipeline.py:110: UserWarning: Glyph 8309 (\N{SUPERSCRIPT FIVE}) missing from font(s) Times New Roman.
+  fig.tight_layout()
+fig_pipeline.py:110: UserWarning: Glyph 8348 (\N{LATIN SUBSCRIPT SMALL LETTER T}) missing from font(s) Times New Roman.
+  fig.tight_layout()
+fig_pipeline.py:110: UserWarning: Glyph 8322 (\N{SUBSCRIPT TWO}) missing from font(s) Times New Roman.
+  fig.tight_layout()
+fig_pipeline.py:110: UserWarning: Glyph 8321 (\N{SUBSCRIPT ONE}) missing from font(s) Times New Roman.
+  fig.tight_layout()
+fig_pipeline.py:111: UserWarning: Glyph 8315 (\N{SUPERSCRIPT MINUS}) missing from font(s) Times New Roman.
+  fig.savefig("fig_pipeline.png", dpi=150, bbox_inches="tight", facecolor="white")
+fig_pipeline.py:111: UserWarning: Glyph 8309 (\N{SUPERSCRIPT FIVE}) missing from font(s) Times New Roman.
+  fig.savefig("fig_pipeline.png", dpi=150, bbox_inches="tight", facecolor="white")
+fig_pipeline.py:111: UserWarning: Glyph 8348 (\N{LATIN SUBSCRIPT SMALL LETTER T}) missing from font(s) Times New Roman.
+  fig.savefig("fig_pipeline.png", dpi=150, bbox_inches="tight", facecolor="white")
+fig_pipeline.py:111: UserWarning: Glyph 8322 (\N{SUBSCRIPT TWO}) missing from font(s) Times New Roman.
+  fig.savefig("fig_pipeline.png", dpi=150, bbox_inches="tight", facecolor="white")
+fig_pipeline.py:111: UserWarning: Glyph 8321 (\N{SUBSCRIPT ONE}) missing from font(s) Times New Roman.
+  fig.savefig("fig_pipeline.png", dpi=150, bbox_inches="tight", facecolor="white")
+saved fig_pipeline.png
+=== paper_measurements.py ===
+================================================================================================
+(a) DIAL CORRELATION corr(k_fast, k_slow) BY SUBSAMPLE  [H2]
+================================================================================================
+  full sample (n=83)            : +0.447
+  2020 (n=12)                    : +0.107
+  2022 (n=12)                    : -0.276
+  stress pooled 2020+2022 (n=24) : +0.247
+  calm remainder (n=59)           : +0.422
+
+================================================================================================
+(b) FRACTION OF DATES WITH beta* = beta_t  [H5]  (beta*=0.95 fixed; beta_t adaptive)
+================================================================================================
+  months: 83 | beta_t range [0.920, 0.971]
+  fraction with |beta_t - 0.95| < 0.005 : 0.181
+  fraction beta_t > 0.95 (deeper than beta*): 0.265 | beta_t < 0.95: 0.554
+
+================================================================================================
+(c) SHUFFLED-k PLACEBO  [H4]  (distribution-matched, timing destroyed; 2000 permutations)
+================================================================================================
+  dynamic:              MaxDD  -6.55%   Sharpe 0.859
+  placebo distribution: MaxDD mean -13.53% [5th -20.37, 95th -7.75]   Sharpe mean 0.611
+  P(dynamic MDD shallower than placebo) = 0.993
+  P(dynamic Sharpe > placebo)           = 0.946
+
+================================================================================================
+(d) OVERLAY TURNOVER AND BREAK-EVEN COST  [H7]
+================================================================================================
+  fast (k_rv)    mean|dk| = 0.1145/mo   annual one-way overlay turnover = 1.37x
+  slow (k_mc)    mean|dk| = 0.0322/mo   annual one-way overlay turnover = 0.39x
+  combined       mean|dk| = 0.0827/mo   annual one-way overlay turnover = 0.99x
+  break-even INCREMENTAL overlay cost vs unmanaged base: 154 bps per unit turnover
+
+================================================================================================
+(f) PROP 5(b) CHECK: predicted mechanical MDD = kbar x MDD(1)
+================================================================================================
+  kbar = 0.699   MDD(1) = -16.56%
+  predicted mechanical MDD = kbar*MDD(1) = -11.58%
+  measured constant-k MDD                = -11.13%
+  dynamic MDD                            = -6.55%
+
+================================================================================================
+(g) SIGN VIOLATIONS OF THE UNCENTRED SIGNAL (our one-day-scale pipeline)  [H5]
+================================================================================================
+  months with cvar_model <= 0 : 0 of 83
+  cvar_model: mean 0.0198  min 0.0086
+
+saved fig_exposure_paths.png
+=== build_results.py ===
+=== ETF-count per month (held book) ===
+  Static (allocator)         mean=11.0 median=12 min=1 max=14
+  Dynamic / managed book     mean=10.7 median=11 min=1 max=14
+
+=== Turnover (one-way, held book) ===
+  mean=4.2%  median=0.0%  max=88.0%  zero-turnover months=46/82  big(>=10%)=10
+  total transaction cost over sample = 0.44% of balance
+
+saved: res_composition_static/dynamic, res_performance, res_turnover, res_dynamic_params .png
+alpha range [0.920,0.971] | lambda range [0.0100,0.0139] | score range [-0.43,0.60]
+=== build_drawdown.py ===
+saved res_drawdown.png
+  Combined (managed)     worst =  -6.55%
+  Realized-vol overlay   worst = -10.75%
+  Dynamic base           worst = -16.56%
+  Static allocator       worst = -17.61%
+  1/N benchmark          worst = -21.30%
+=== extension_comparison.py ===
+Traceback (most recent call last):
+  File "/Users/mac/Downloads/Group_1/make_figures.py", line 9, in <module>
+    runpy.run_path(script, run_name="__main__")
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 294, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "extension_comparison.py", line 54, in <module>
+    "Multi-signal (extension)": load(THEIRS, "advanced_smart_bayesian"),
+                                ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "extension_comparison.py", line 21, in load
+    p = pd.read_csv(root / arm / "pnl.csv"); c = p.columns[0]; p[c] = pd.to_datetime(p[c])
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/pandas/io/parsers/readers.py", line 873, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/pandas/io/parsers/readers.py", line 300, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/pandas/io/parsers/readers.py", line 1645, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/pandas/io/parsers/readers.py", line 1904, in _make_engine
+    self.handles = get_handle(
+                   ~~~~~~~~~~^
+        f,
+        ^^
+    ...<6 lines>...
+        storage_options=self.options.get("storage_options", None),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/pandas/io/common.py", line 930, in get_handle
+    handle = open(
+        handle,
+    ...<3 lines>...
+        newline="",
+    )
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/mac/Downloads/Group_1/companion/results/advanced_smart_bayesian/pnl.csv'

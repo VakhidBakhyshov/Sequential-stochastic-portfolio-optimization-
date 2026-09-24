@@ -1,0 +1,32 @@
+=== A1) exponent family  k = clip(k_rv^a * k_mc^b)  [product = (1,1)] ===
+       b=0.0  b=0.5  b=1.0  b=1.5  b=2.0
+a=0.0  0.660  0.728  0.781  0.811  0.843
+a=0.5  0.705  0.771  0.813  0.836  0.874
+a=1.0  0.750  0.814  0.859  0.879  0.898
+a=1.5  0.814  0.871  0.904  0.908  0.921
+a=2.0  0.860  0.919  0.939  0.928  0.939
+  product (1,1) Sharpe = 0.859   |   grid-best (2.0, 2.0) Sharpe = 0.939
+
+=== A2) convex blend  k = clip(w*k_rv + (1-w)*k_mc) ===
+  w=0.0:0.781  w=0.1:0.783  w=0.2:0.783  w=0.3:0.782  w=0.4:0.780  w=0.5:0.777  w=0.6:0.774  w=0.7:0.769  w=0.8:0.763  w=0.9:0.757  w=1.0:0.750
+  best convex blend w=0.2 Sharpe=0.783  (vs product 0.859, realized=w1.0 0.750)
+
+=== A3) combination FORM at matched mean exposure (= product's 0.699) ===
+  product  k_rv*k_mc   Sharpe=0.859  Ann%=8.36  MaxDD%=-6.55
+  min(k_rv,k_mc)       Sharpe=0.783  Ann%=7.99  MaxDD%=-7.62
+  convex 0.5/0.5       Sharpe=0.777  Ann%=8.03  MaxDD%=-8.31
+  realized only        Sharpe=0.759  Ann%=7.97  MaxDD%=-8.74
+  model only           Sharpe=0.781  Ann%=8.16  MaxDD%=-7.88
+
+=== B) Causal adaptive vs fixed product (Dynamic book, 83 mo) ===
+                          Cumul    Ann    Vol  Sharpe  Sortino   MaxDD  Calmar  CVaR95  DSR%
+arm                                                                                         
+Realized-vol only        81.437  8.995  9.443   0.750    1.274 -10.754   0.836  -4.410  96.4
+Model-CVaR only          82.069  9.050  9.091   0.781    1.161  -9.555   0.947  -4.934  96.4
+FIXED product (Primary)  74.305  8.365  7.365   0.859    1.428  -6.545   1.278  -3.644  97.9
+CAUSAL adaptive tilt     68.149  7.803  7.616   0.765    1.138  -8.587   0.909  -4.282  96.2
+
+=== Paired bootstraps (5000) ===
+  adaptive vs product: dSharpe=-0.094 P(better)=0.125 | dMaxDD=-0.020 P(shallower)=0.352
+
+saved experiment5_metrics.csv + _experiment5_combination.png

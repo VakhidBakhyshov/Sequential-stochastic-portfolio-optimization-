@@ -1,0 +1,8 @@
+                 Beta  Treynor  DownsideDev  PainRatio    MAD
+Static          0.483   18.409        7.572      2.185  2.956
+Dynamic base    0.466   16.874        7.506      2.154  2.816
++ Realized-vol  0.335   20.907        5.316      2.611  2.180
++ Model-CVaR    0.342   20.628        5.440      3.795  2.125
++ Combined      0.253   25.155        4.067      4.138  1.725
+1/N             0.782   11.247        9.434      2.057  3.204
+saved extra_ratios.csv

@@ -1,0 +1,20 @@
+=== VERIFIED original-universe results (83 OOS months, all causal) ===
+                                  Cumul%   Ann%   Vol%  Sharpe  Sortino  MaxDD%  Calmar  CVaR95%  PSR%  DSR%
+strategy                                                                                                    
+Static (alloc, no overlay)         104.4  10.89  12.92   0.712    1.128  -17.61   0.618    -6.34  96.6  91.5
+Dynamic base (no overlay)           91.6   9.86  12.43   0.660    0.974  -16.56   0.595    -6.60  95.3  89.0
++ Realized-vol overlay              81.4   8.99   9.44   0.750    1.274  -10.75   0.836    -4.41  97.4  93.0
++ Model-CVaR overlay (causal)       82.1   9.05   9.09   0.781    1.161   -9.56   0.947    -4.93  97.3  93.2
++ Combined (Primary, causal)        74.3   8.36   7.37   0.859    1.428   -6.55   1.278    -3.64  98.5  95.7
+Benchmark 1/N                      103.2  10.80  14.70   0.638    0.846  -21.30   0.507    -8.80  94.2  87.1
+Benchmark Markowitz max-Sharpe      30.1   3.88   6.45   0.313    0.312  -17.76   0.219    -4.54  78.4  63.3
+Benchmark Markowitz min-variance    15.0   2.04   2.17   0.018    0.015   -7.04   0.289    -1.69  51.9  34.0
+
+DSR deflated over N_TRIALS=64; benchmark Sharpe* (annual) = 0.177
+
+=== Paired bootstraps (5000), treatment = Combined (Primary, causal) ===
+  Combined vs Realized-vol: dSharpe=+0.109 P(better)=0.859 | dMaxDD=+0.042 P(shallower)=0.979
+  Combined vs 1/N      : dSharpe=+0.221 P(better)=0.762 | dMaxDD=+0.148 P(shallower)=0.993
+  Combined vs Dynamic base: dSharpe=+0.199 P(better)=0.881 | dMaxDD=+0.100 P(shallower)=0.998
+
+saved verified_results.csv

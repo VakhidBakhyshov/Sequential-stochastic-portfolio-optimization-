@@ -1,0 +1,7 @@
+                              months   mean_n  jaccard  turnover_yr  cum_cost_pct     Ann     Vol  Sharpe  Sortino   MaxDD  CVaR95  Calmar  P(alt better Sharpe)  P(alt shallower DD)
+universe                                                                                                                                                                             
+original (production screen)      83  219.108    0.987        0.253         0.175  10.758  15.635   0.608    0.703 -24.653  -8.941   0.436                   NaN                  NaN
+matrix1 (~300)                    83  297.446    0.987        0.252         0.175  10.732  15.387   0.613    0.696 -24.815  -8.861   0.432                 0.657                0.577
+matrix2 (top-400 cap)             83  384.000    0.814        1.444         0.999   9.623  14.251   0.579    0.677 -22.138  -8.291   0.435                 0.168                0.934
+
+saved ew_universe_ablation.csv / ew_universe_ablation_monthly.csv

@@ -1,0 +1,10 @@
+=== ETF-count per month (held book) ===
+  Static (allocator)         mean=11.0 median=12 min=1 max=14
+  Dynamic / managed book     mean=10.7 median=11 min=1 max=14
+
+=== Turnover (one-way, held book) ===
+  mean=4.2%  median=0.0%  max=88.0%  zero-turnover months=46/82  big(>=10%)=10
+  total transaction cost over sample = 0.44% of balance
+
+saved: res_composition_static/dynamic, res_performance, res_turnover, res_dynamic_params .png
+alpha range [0.920,0.971] | lambda range [0.0100,0.0139] | score range [-0.43,0.60]
