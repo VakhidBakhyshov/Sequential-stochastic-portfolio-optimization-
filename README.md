@@ -159,7 +159,7 @@ python -m scripts.results.interactive_report --result-folder results/advanced_sm
 - `scripts/runs/final_results_simple.py` - notebook workflow as a console script.
 - `scripts/configs/advanced_smart_bayesian.yaml` and `scripts/configs/strategy_smart.yaml` - ready-to-run configs.
 
-## Integrated from FINAL-copy
+## Integrated from FINAL
 
 The root scripts `cvar_target_overlay.py`, `fast_voltarget.py`, `report_style.py`, and `regenerate.py` were preserved, and the corresponding scripts from `model_code/scripts` were overlaid into `scripts/`. This keeps the posterior-predictive scenario fan, model-implied CVaR forecast audit, dynamic parameter history, universe matrix helper and overlay code.
 
