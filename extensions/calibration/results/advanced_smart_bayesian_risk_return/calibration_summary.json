@@ -1,0 +1,16 @@
+{
+  "n_trials": 61,
+  "n_completed": 60,
+  "n_pareto": 17,
+  "max_return_trial": 23,
+  "risk_control_trial": 50,
+  "pair_heatmaps": [
+    "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/results/calibration/advanced_smart_bayesian_risk_return/parameter_pair_heatmaps/pair_heatmap__optimizer_0_max_weight__model_mom_tilt.png",
+    "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/results/calibration/advanced_smart_bayesian_risk_return/parameter_pair_heatmaps/pair_heatmap__optimizer_0_max_weight__optimizer_0_turnover_penalty.png",
+    "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/results/calibration/advanced_smart_bayesian_risk_return/parameter_pair_heatmaps/pair_heatmap__optimizer_0_max_weight__smart_signals_cvar_target_multiplier.png",
+    "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/results/calibration/advanced_smart_bayesian_risk_return/parameter_pair_heatmaps/pair_heatmap__model_mom_tilt__optimizer_0_turnover_penalty.png",
+    "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/results/calibration/advanced_smart_bayesian_risk_return/parameter_pair_heatmaps/pair_heatmap__model_mom_tilt__smart_signals_cvar_target_multiplier.png",
+    "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/results/calibration/advanced_smart_bayesian_risk_return/parameter_pair_heatmaps/pair_heatmap__optimizer_0_turnover_penalty__smart_signals_cvar_target_multiplier.png"
+  ],
+  "parameter_importance_rows": 65
+}
