@@ -1,0 +1,41 @@
+# Strategy-only version using the same smart risk-signal layer.
+balance: 1000.0
+window: rolling
+lookback_years: 3
+initial_weight: equal
+portfolio: filtered
+use_backtest_engine: false
+output_folder: strategy_smart_liquidity_weighted
+is_previous: true
+seed: 42
+
+model:
+  - type: bayessian
+  - matrix_type: fast
+  - mean_return: sampled
+  - distribution: normal
+  - posterior: horseshoe
+  - n_samples: 1000
+  - horizon: 21
+  - cov_method: ledoit_wolf
+  - random_state: 42
+
+strategy:
+  - type: liquidity_weighted
+
+execution:
+  - type: base_exec
+    return_type: "log-returns"
+    is_past: true
+    use_dynamic_alpha: true
+    c_bps: 0.001
+
+smart_signals:
+  enabled: true
+  apply_position_sizing: true
+  allow_cash_overlay: true
+  kelly_cap: 0.25
+  risk_reward_cap: 5.0
+  target_monthly_vol: 0.035
+  min_overlay: 0.30
+  target_signal_quality: 0.55
