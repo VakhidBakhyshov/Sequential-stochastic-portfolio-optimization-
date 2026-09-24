@@ -1,0 +1,33 @@
+Metric,Value
+Cumulative Return,0.761170
+Annualized Return,0.084213
+Annualized Volatility,0.083224
+Sharpe Ratio,0.775334
+Sortino Ratio,1.427870
+Max Drawdown,-0.086351
+Average Drawdown,-0.021426
+Calmar Ratio,0.975235
+VaR (95%),-0.031245
+CVaR (95%),-0.039611
+Downside Deviation,0.044971
+Win Rate,0.607143
+Average Win,0.022221
+Average Loss,-0.016924
+Expectancy,0.006842
+Profit Factor,2.092521
+Omega Ratio,2.092521
+Pain Ratio,5.472590
+Mean Absolute Deviation,0.019479
+Skewness,0.006291
+Excess Kurtosis,-0.468709
+Beta,nan
+Treynor Ratio,nan
+Tracking Error,nan
+Information Ratio,nan
+PSR,0.978371
+DSR,0.978371
+DSR Benchmark E[max SR],0.000000
+Number of Trials,1.000000
+Trial Sharpe Mean,0.000000
+Trial Sharpe Std,0.000000
+N Periods,84.000000
