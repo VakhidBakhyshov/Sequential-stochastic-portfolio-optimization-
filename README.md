@@ -1,17 +1,16 @@
 # Combined README
-
-This file combines the complete contents of all Markdown (`.md`) files from the supplied ZIP archive. Each source file is identified below.
-
+This file consolidates the complete contents of all Markdown (`.md`) documentation files from the supplied archive into one master README. The latest archive versions are used, and each source file is identified below.
 ## Included files
-
 - `md files/README.md`
 - `md files/README_UPDATED.md`
+- `md files/README_V2.md`
 - `md files/SIGNAL_RESEARCH_README.md`
 - `md files/CODE_AUDIT_AND_CHANGELOG.md`
+- `md files/CODE_AND_MANUSCRIPT_AUDIT.md`
+- `md files/EXECUTION_CONVENTION_SUMMARY.md`
 - `md files/CDAR_PATCH_MANIFEST.md`
 - `md files/IMPLEMENTATION_NOTES.md`
 - `md files/DELIVERY_MANIFEST.md`
-- `md files/README_V2.md`
 - `md files/UNIVERSE_COMPARISON_README.md`
 - `md files/CDAR_NOTEBOOKS_README.md`
 
@@ -159,7 +158,7 @@ python -m scripts.results.interactive_report --result-folder results/advanced_sm
 - `scripts/runs/final_results_simple.py` - notebook workflow as a console script.
 - `scripts/configs/advanced_smart_bayesian.yaml` and `scripts/configs/strategy_smart.yaml` - ready-to-run configs.
 
-## Integrated from FINAL
+## Integrated from FINAL-copy
 
 The root scripts `cvar_target_overlay.py`, `fast_voltarget.py`, `report_style.py`, and `regenerate.py` were preserved, and the corresponding scripts from `model_code/scripts` were overlaid into `scripts/`. This keeps the posterior-predictive scenario fan, model-implied CVaR forecast audit, dynamic parameter history, universe matrix helper and overlay code.
 
@@ -219,6 +218,84 @@ is refit on the full pre-rebalance history, these diagnostics are propagated int
 audit so Proposition 2 / Proposition 9 can be checked date by date on the frozen historical re-run.
 
 <!-- END SOURCE FILE: md files/README_UPDATED.md -->
+
+---
+
+<!-- BEGIN SOURCE FILE: md files/README_V2.md -->
+
+# ETF Risk-Signal Diversification Pipeline — Research Edition
+
+This package is a console-first version of the ETF portfolio research framework. It preserves the original folder structure, adds a causal walk-forward selection engine, horizon-consistent posterior scenarios, exact return-maximization subject to a CVaR budget, smart position sizing, train/test statistics, actual risk-matrix export, and a self-contained Plotly audit dashboard.
+
+## Important empirical warning
+
+The package does **not** hard-code the Advanced Smart Bayesian strategy as the winner. A strategy is promoted only when it improves validation and internal-test results and then survives the untouched next-month evaluation. The sample dashboard under `reports/sample_dashboard/` is synthetic and exists only to test file schemas and reporting.
+
+## Main commands
+
+```bash
+python -m pip install -r requirements.txt
+python -m pytest -q
+
+# Primary EMA-smoothed ETF universe
+python -m scripts.dataloader.monthly_etf_filtration_2 \
+  --prices datasets/csv/NewClosePrice.csv \
+  --volumes datasets/csv/Volume.csv \
+  --business-dates datasets/excel/business_dates.xlsx \
+  --top-n 100 --benchmark SPY --spy-filter smart \
+  --lookback-days 90 --score-ema-alpha 0.5
+
+# Rolling-score robustness universe
+python -m scripts.dataloader.monthly_etf_filtration \
+  --top-n 100 --rolling-score-months 3
+
+# Advanced Bayesian-CVaR policy
+python -m scripts.runs.run -c advanced_smart_bayesian.yaml
+
+# Strategy-only champion/challenger experiment
+python -m scripts.runs.strategy_run -c strategy_smart.yaml
+
+# Notebook replacement
+python -m scripts.runs.final_results_simple --configs advanced_smart_bayesian.yaml
+
+# Rebuild dashboard from existing results
+python -m scripts.results.interactive_report \
+  --result-folder results/advanced_smart_bayesian
+
+# Synthetic reporting smoke test — not a performance result
+python -m scripts.runs.synthetic_smoke
+```
+
+## Core changes
+
+1. **Holding-period posterior scenarios.** Daily simulated returns are aggregated over the configured horizon, so the optimizer and forward CVaR timer use the same monthly unit as execution.
+2. **Model-consistent CVaR policy.** `return_cvar_constraint` maximizes posterior expected holding-period return subject to a scenario CVaR budget and turnover cost.
+3. **Cash overlay preserved.** Exposure reductions are no longer renormalized back to 100% risky assets.
+4. **Backward + forward risk timers.** The portfolio controller combines realized/GARCH volatility with posterior-predictive CVaR, then adds a bounded conviction timer from Kelly, payoff asymmetry and signal quality.
+5. **Stable model selection.** Candidate recipes are ranked using validation and internal-test performance plus a degradation penalty. The next month is not used for selection.
+6. **Executed weights are state.** When partial rebalancing uses `alpha < 1`, next month starts from the actual executed weights, not the unreachable target.
+7. **Actual model matrices.** Every rebalance can save the covariance and correlation matrices used by the model to `risk_matrices.json`.
+8. **ETF inception protection.** Universe metrics count observations before filling and never backward-fill pre-listing history.
+9. **Research statistics.** Overall/train/test metrics, rolling Sharpe and Sortino, win rate, average drawdown, expectancy, profit factor, PSR and DSR are exported.
+10. **Interactive audit.** The dashboard shows performance versus SPY/equal-weight proxy, drawdown, risk, turnover, risky exposure, eligible/selected universes, actual model matrices, smart signals and monthly min/max weight-filterable tables.
+
+## Result folder contract
+
+A normal run writes:
+
+- `pnl.csv`, `preds.csv`, `real.csv`, `model.csv`
+- `weights.xlsx` with target and executed weights
+- `selection_audit.csv`, `smart_rebalance_audit.csv`
+- `forecast_risk.csv`, `dynamic_parameter_history.csv`
+- `risk_matrices.json`, `run_metadata.json`
+- `train_test_metrics.csv`, `rolling_metrics.csv`
+- `interactive_report.html`
+
+## Legacy runners
+
+`combined_run.py`, `combined_strategy_run.py`, `new_run.py`, and `new_run2.py` are retained for reproducibility of older experiments. They are not the recommended path for journal results because they contain legacy in-sample alpha/model comparison logic. New journal tables should be generated through `run.py` or `strategy_run.py` with `use_backtest_engine: true`.
+
+<!-- END SOURCE FILE: md files/README_V2.md -->
 
 ---
 
@@ -336,6 +413,331 @@ frozen point-in-time empirical result directory before using any new table or fi
 The known-distribution layer was strengthened beyond the existing BM/GBM path and scalar-CVaR checks.  The repository now contains an exact-law oracle for the same return/CVaR/turnover decision problem and compares it with the finite-scenario LP.  New diagnostics cover: (i) exact Gaussian CVaR and its weight gradient, (ii) CVaR sensitivity to Brownian correlation, (iii) finite-scenario convergence toward the exact-law oracle, (iv) plug-in drift/covariance/risk estimation error as the lookback grows, and (v) exact mean-shift identification of the centred signal.  These are verification results only and are not promoted to empirical ETF-performance claims.
 
 <!-- END SOURCE FILE: md files/CODE_AUDIT_AND_CHANGELOG.md -->
+
+---
+
+<!-- BEGIN SOURCE FILE: md files/CODE_AND_MANUSCRIPT_AUDIT.md -->
+
+# Code + manuscript audit and final-file decision
+
+## Scope
+
+I reviewed the uploaded framework as a codebase rather than treating `*-upd.py` as automatically newer/better. The archive contains **143 Python files, 7 notebooks, 122 YAML/YML files**, and seven direct `file.py` / `file-upd.py` pairs. I compared each pair, traced the main monthly pipeline, execution state, transaction costs, nested selection, predictive scenarios, CVaR/CDaR, result statistics and exposure overlays against the manuscript and `EXECUTION_CONVENTION_SUMMARY.md`.
+
+The most important finding is that the final code should **not** be either `run.py` or `run-upd.py` unchanged. The strongest final version is a **merge based on the current non-`-upd` code**, with the Policy-C execution/accounting corrections from the markdown.
+
+---
+
+## 1. Which duplicate file should be final?
+
+| Pair | Final choice | Reason |
+|---|---|---|
+| `scripts/runs/run.py` vs `run-upd.py` | **MERGE, starting from `run.py`** | Current `run.py` contains the richer final research pipeline: scenario-path handling, centered CVaR/CDaR diagnostics, trial ledger, risk-matrix audit, post-processing and current validation hooks. `run-upd.py` contains an older state-reference switch, but neither old version implements Policy C correctly because both effectively use one state for two different economic roles. The patched `run.py` separates previous-target optimizer anchor from actual executed holdings. |
+| `scripts/models/base.py` vs `base-upd.py` | **Use `base.py`** | Current file treats scenario rows as a predictive distribution and compares them with the realized holding-period outcome. The `-upd` version contains older KDE/WAIC/R² logic and treats objects less consistently with the current scenario architecture. |
+| `scripts/models/bayessian.py` vs `bayessian-upd.py` | **Use `bayessian.py`** | Current file supports horizon-aware scenario generation, daily covariance, reproducible posterior mean construction, ordered scenario paths for CDaR, risk-matrix snapshots and scenario-return-type handling. Those are required by the manuscript's CVaR/CDaR and structural diagnostics. |
+| `scripts/optimizers/base.py` vs `base-upd.py` | **Use `base.py`** | Current file has the more precise sample-CVaR audit calculation (including fractional tail mass) and stronger LP/binding/shadow-price diagnostics, which are needed for the budget-degeneracy claims. |
+| `scripts/backtesting/walk_forward_engine.py` vs `walk_forward_engine-upd.py` | **Use patched `walk_forward_engine.py`** | Current file preserves CDaR scenario paths, candidate-attempt/trial audit and robust selection diagnostics. Patch additionally splits optimizer reference from execution state and prevents post-execution re-normalization. |
+| `scripts/backtesting/engine_integration.py` vs `engine_integration-upd.py` | **Use patched `engine_integration.py`** | Current file includes smart-signal integration and richer audit outputs. Patch passes the two Policy-C states separately. |
+| `scripts/results/stats.py` vs `stats-upd.py` | **Use `stats.py`** | This is not close: current file is the full research version (PSR/DSR, extended metrics, train/test, rolling Sharpe/Sortino, annual/monthly plots, false-strategy diagnostics, artifact export). `stats-upd.py` is a much smaller older subset. |
+
+### Practical cleanup rule
+
+After integrating this patch and reproducing the final run, move all seven `*-upd.py` files to an archive folder or delete them from the publication branch. Keeping both names in the active source tree makes it too easy to run the wrong implementation and undermines reproducibility.
+
+---
+
+## 2. Main execution/accounting problem
+
+The framework had three objects that must be distinct:
+
+1. **previous target**: useful as the optimizer's regularization/turnover anchor;
+2. **previous executed holdings**: the portfolio economically held at the start of the new trade;
+3. **new target**: the current optimization output.
+
+Using one `w_previous` variable for all three roles creates the exact inconsistency described in the markdown. The patched pipeline uses:
+
+```text
+optimizer anchor at t  = target_{t-1}
+trade starting state   = executed_{t-1}
+executed_t              = executed_{t-1} + eta_t * (target_t - executed_{t-1})
+optimizer anchor at t+1 = target_t
+trade starting state t+1= executed_t
+```
+
+This is Policy C.
+
+### Why not Policy B (executed holdings everywhere)?
+
+It is internally neat but changes the optimizer's turnover reference and, according to the supplied rerun summary, causes materially more turnover/oscillation. The state that determines *economic trading* does not have to be identical to the reference point used in a regularized optimization objective. The paper must be explicit about this distinction.
+
+---
+
+## 3. Transaction-cost convention
+
+The execution code computes
+
+```python
+turnover = sum(abs(w_exec - w_prev_exec))
+cost = c_bps * turnover
+```
+
+That quantity is **gross/two-way traded notional (L1 turnover)**: purchases and sales are both counted. If a fully invested portfolio sells 20% and buys 20%, L1 turnover is 40%, while conventional one-way turnover is 20%.
+
+Therefore, with `c_bps = 0.001`:
+
+- the code charges **10 bp per unit bought or sold**;
+- equivalently, for a self-financing fully invested rebalance, it is **20 bp per unit of conventional one-way turnover**.
+
+The manuscript should not call `sum(abs(delta w))` “one-way turnover.” The patch uses the unambiguous language **gross traded notional / L1 turnover**.
+
+---
+
+## 4. Missing-return bug for assets leaving the feasible set
+
+This was a real accounting issue. Previously, next-month returns were loaded only for the *current eligible set*. With partial execution, an ETF that leaves the eligible set can still have a positive executed holding while it is being liquidated. Its return must therefore still enter realized PnL.
+
+The patched `run.py` now builds:
+
+- `future_returns`: current eligible names, used by the model/evaluation logic;
+- `future_returns_execution`: the complete portfolio-state ticker list in the same order as the full weight vector, used for actual PnL.
+
+`BaseExecution` detects the full-state frame and books all economically held positions. Required exits are also automatically included in turnover because the target weight for an ineligible name is zero while its previous executed holding may be positive.
+
+---
+
+## 5. Exposure-overlay trading cost
+
+The original `overlay_arms.py` changes risky exposure but does not charge any incremental cost for changing the exposure multiplier. The manuscript currently says exposure changes generate trading, so code and text were not aligned.
+
+The patched script adds an explicit option:
+
+```bash
+python overlay_arms.py <run_folder> --charge-exposure-costs --exposure-cost-bps 0.001
+```
+
+The separate exposure-channel turnover is
+
+```text
+|k_t - k_{t-1}|
+```
+
+and cost is `rate * |delta k|`.
+
+This is intentionally reported as a **separate scalar exposure-channel cost**, not as an exact additive decomposition of full-vector L1 turnover when both composition and exposure change simultaneously.
+
+### Recommended publication handling
+
+Run and report **both**:
+
+- Policy C with composition/execution costs only;
+- Policy C + exposure-overlay cost at 10 bp.
+
+Choose the first as baseline only if the paper explicitly states that overlay implementation costs are excluded from the baseline and the second is a robustness check. If the paper says exposure changes are charged in the baseline, then use the second as the baseline.
+
+---
+
+## 6. Additional harmful/important issue found: `strict_nested_engine` was ignored
+
+Two publication YAML files declare:
+
+```yaml
+strict_nested_engine: true
+```
+
+but the original `run.py` caught every nested-engine exception and silently fell back to the legacy direct optimization path. That means a supposedly “strict” production run could contain a mixture of two selection procedures without stopping.
+
+The patched `run.py` now raises immediately when `strict_nested_engine: true`. This is important for a publication run because otherwise the trial ledger, selection chronology and reported algorithm can differ across months.
+
+---
+
+## 7. Nested-engine partial-execution bug fixed
+
+Inside `walk_forward_engine.py`, candidate weights were partially executed and then normalized back to one. That can silently undo the economic meaning of partial execution when total risky mass is below one (for example after required exits or when a cash sleeve exists).
+
+The patch removes this post-execution renormalization. Target composition is normalized when it is constructed; the executed state is left as the affine state transition.
+
+---
+
+## 8. Manuscript/code inconsistencies that still require a new empirical rerun
+
+The code patch makes the implementation internally coherent, but **old reported numerical results do not become valid automatically**. The manuscript must be regenerated from a fresh final-policy run.
+
+The supplied markdown already shows that Policy C changes the production numbers. Therefore do not keep the old Table 5 / Section 7 production values and simply change the prose.
+
+At minimum, regenerate:
+
+- Table 5 main performance metrics;
+- Table 6 exposure attribution;
+- fast/slow/HDRC paths and drawdown plots;
+- PSR/DSR from the exact final trial ledger;
+- transaction-cost/turnover tables and break-even cost;
+- fast/slow signal correlation diagnostics;
+- VIX comparison numbers;
+- execution mechanism section;
+- all downstream slides/tables that use the production run.
+
+The matched CVaR–CDaR experiment, known-law theory and purely structural mathematics only stay unchanged if they are genuinely produced by an independent matched branch that does not use the corrected production-run accounting outputs.
+
+---
+
+## 9. Manuscript wording that should change for Policy C
+
+The current text says the executed portfolio is also the turnover reference passed into the next optimizer. Under the recommended split convention, that is no longer the definition.
+
+Use this distinction throughout notation, Model §3.4/3.6, Theorem 2 discussion, Algorithm Appendix J and execution results:
+
+```text
+q_{t-1}: previous target composition used as the optimizer's turnover/reference anchor.
+x_{t-1}^{exec}: actual risky holdings from which current trading, realized returns and transaction costs are computed.
+x_t^{tar}: current total-wealth/risky target.
+x_t^{exec}: actual holdings after partial execution.
+```
+
+Do **not** say “the optimizer starts from executed holdings” if using Policy C. It does not. The economic trade starts from executed holdings; the optimizer penalty is anchored on the previous target.
+
+Also change transaction-cost wording from “10 bp per unit of one-way turnover” to something like:
+
+> Transaction cost equals 10 bp times gross traded notional, where gross traded notional is the L1 change in implemented risky holdings and therefore counts buys and sells separately.
+
+If using the optional overlay-cost implementation, add a separate sentence defining `|k_t-k_{t-1}|` and the applied rate.
+
+---
+
+## 10. Files in this patch
+
+### Changed / new final-policy files
+
+- `scripts/runs/run.py`
+- `scripts/backtesting/walk_forward_engine.py`
+- `scripts/backtesting/engine_integration.py`
+- `scripts/executions/base.py`
+- `scripts/executions/accounting.py` **(new)**
+- `overlay_arms.py`
+- `tests/test_execution_convention.py` **(new)**
+- `notebooks/execution_transaction_cost_audit.ipynb` **(new)**
+
+### Canonical files selected from duplicate pairs (kept as-is from the stronger current implementation)
+
+- `scripts/models/base.py`
+- `scripts/models/bayessian.py`
+- `scripts/optimizers/base.py`
+- `scripts/results/stats.py`
+
+Do not replace these four with their `*-upd.py` versions.
+
+---
+
+## 11. Validation performed here
+
+- All changed Python files compile successfully when merged into the uploaded framework.
+- The whole `scripts/` tree compiles after the patch.
+- New execution-convention regression tests: **5 passed**.
+- The tests check exact partial-execution contraction/turnover identities, Policy-C state separation, the 10-bp/L1 cost convention, required liquidation, and the separate exposure-turnover channel.
+
+A full 83-month numerical rerun was **not** treated as completed in this review. That rerun is required before updating empirical values in the manuscript, because the corrected state/cost convention is intentionally different from the archived production run.
+
+---
+
+## Final code-branch recommendation
+
+Use the non-`-upd` implementation as the base branch, apply this patch, archive the `*-upd.py` files, set `strict_nested_engine: true` for the publication run, and regenerate all production results once under a single frozen convention. Do not mix archived Policy-A results, Policy-B state semantics, and Policy-C code in the final article.
+
+<!-- END SOURCE FILE: md files/CODE_AND_MANUSCRIPT_AUDIT.md -->
+
+---
+
+<!-- BEGIN SOURCE FILE: md files/EXECUTION_CONVENTION_SUMMARY.md -->
+
+# Execution and cost convention: summary
+
+## Why we looked
+
+Two points had to be checked before submission:
+
+1. The final policy must carry executed holdings into the next decision, and any archived evidence in Section 7 must be labelled as archived.
+2. The 10 bp cost convention in the manuscript must match the code exactly.
+
+## What the code check found
+
+- **Wrong state carried.** The reported run carried last month's target into the next decision, while the manuscript says executed holdings are carried. Both the optimizer's turnover penalty and the partial-execution step started from the previous target.
+- **Costs under-charged.** As a result, costs were charged on about half of the actual trading: 0.50 turns per year (0.44% cumulative) were charged, against 1.02 turns (0.79%) actually traded.
+- **Returns and exposure changes missing.** In six months, returns of held funds that had left the eligible set were not booked. Changes in the overlay's exposure are not charged.
+- **Cost label wrong.** The code charges 10 bp on every unit bought and every unit sold. The manuscript's formula gives the same numbers, but its "one-way" label does not match. The code's rate equals 20 bp per unit of one-way turnover.
+
+## What we changed and how
+
+In a copy of the package (`hdrc_policyC`), we added one option to the run engine, called policy C:
+
+- The optimizer's turnover penalty stays anchored on the previous target.
+- Each month's trade starts from the executed holdings.
+- Costs are 10 bp on every unit actually traded.
+- The returns of all held funds are booked.
+
+We reran all 31 paper configurations and the full analysis chain. The checks pass:
+
+- Holdings and costs match the stated formulas to 10⁻¹⁶ in every month.
+- The old setting still reproduces the reported results exactly.
+
+## Options
+
+| Option | What it means | HDRC Sharpe / max DD | Unmanaged base | Verdict |
+|---|---|---|---|---|
+| A, as reported | Previous target carried; half the trades charged | 0.859 / −6.55% | 0.660 | Contradicts the manuscript and under-charges costs. A reviewer can detect this from the weights. |
+| A, corrected costs | Same decisions, with costs and returns on actual holdings | 0.849 / −6.92% | 0.645 | Accounting is right, but the paper would have to describe a strategy that tracks a target it never holds. |
+| B, executed book everywhere | What the manuscript currently says | 0.627 / −10.79% | 0.625 | Worst option. The optimizer oscillates: turnover nearly doubles and 37 names are held. |
+| **C, split (recommended)** | Optimizer anchored on the previous target; holdings and costs on the executed book | **0.811 / −7.07%** | 0.617 | Exact accounting, and executed holdings are carried. The manuscript only has to describe the anchor. |
+| Full execution (η = 1) | Trade fully to the target every month | 0.874 / −6.80% | 0.664 | No gap between target and holdings, and the same trading as C. But it removes partial execution from the model and would be chosen after seeing results. |
+
+A second, smaller choice concerns exposure changes. We can leave them uncharged and say so (C: 0.811), or charge them at 10 bp (C: 0.798 / −7.18%).
+
+## Effects of switching to C
+
+**Numbers.** Every result that comes from the production run changes:
+
+- HDRC goes from 0.859 / −6.55% to 0.811 / −7.07%.
+- The deflated Sharpe ratio goes from 96.0% to 94.6%.
+
+These stay the same: data, the 1/N and Markowitz benchmarks, the theory, the known-law work and the CVaR–CDaR comparison.
+
+**Conclusions.** The qualitative results all hold:
+
+- The drawdown advantage over the fast channel, 1/N and the base is significant (P = 0.98–1.00).
+- Timing accounts for about half of the drawdown cut.
+- HDRC beats random timing.
+- It matches the VIX rule.
+- The product is the best combination.
+- The two signals carry distinct information.
+
+**Four claims need rewording:**
+
+1. The unmanaged allocator is now below 1/N on Sharpe (0.617 vs 0.638).
+2. The deflated Sharpe ratio (94.6%) is below the 95% threshold.
+3. The slow signal has a small negative link to next-month return (−0.23, p = 0.04). The text can no longer say it has no return content.
+4. Partial execution does not reduce trading, because full execution trades as much and earns more. The execution section can claim exact accounting, not a cost saving.
+
+**Manuscript text beyond numbers:**
+
+- **Turnover reference.** Define it as the previous target: notation, equations 23 and 33, Proposition 5, Appendix B.4.
+- **Execution.** Write it on the risky composition, with exposure applied in full each month. This covers equations 56–61 and 81–86; restate Theorem 2.
+- **Costs.** Say 10 bp per unit bought or sold, with turnover reported two-way. State whether exposure changes are charged.
+- **Section 7.7.** Rewrite it so the B run becomes the mechanism test that justifies the anchor.
+- **Remove the history.** Delete the "archived" and "development" wording.
+- **Earlier items.** Fix S = 5,000, the 0.17 correlation sentence, the missing VIX results and the leftover image alt texts.
+
+## Does this resolve the two points?
+
+- **Point 1, executed holdings: yes.** Executed holdings are carried and booked. Every Section 7 result comes from the same final code, so nothing has to be labelled as archived. The manuscript must state that the optimizer's anchor is the previous target.
+- **Point 2, cost convention: yes, in the code.** Costs equal 10 bp times the actual trades, checked in every month. The manuscript still needs the label fix and the exposure-cost statement.
+
+## Next steps if we choose C
+
+1. Switch the companion package to C and regenerate its reference tables and figures.
+2. Update the manuscript numbers and text as listed above.
+3. Update the slides.
+
+Full results: `COMPARISON.md` and the `comparison/` folder.
+
+<!-- END SOURCE FILE: md files/EXECUTION_CONVENTION_SUMMARY.md -->
 
 ---
 
@@ -634,84 +1036,6 @@ python -m scripts.runs.sequential_diffusion_analysis --output results/sequential
 ```
 
 <!-- END SOURCE FILE: md files/DELIVERY_MANIFEST.md -->
-
----
-
-<!-- BEGIN SOURCE FILE: md files/README_V2.md -->
-
-# ETF Risk-Signal Diversification Pipeline — Research Edition
-
-This package is a console-first version of the ETF portfolio research framework. It preserves the original folder structure, adds a causal walk-forward selection engine, horizon-consistent posterior scenarios, exact return-maximization subject to a CVaR budget, smart position sizing, train/test statistics, actual risk-matrix export, and a self-contained Plotly audit dashboard.
-
-## Important empirical warning
-
-The package does **not** hard-code the Advanced Smart Bayesian strategy as the winner. A strategy is promoted only when it improves validation and internal-test results and then survives the untouched next-month evaluation. The sample dashboard under `reports/sample_dashboard/` is synthetic and exists only to test file schemas and reporting.
-
-## Main commands
-
-```bash
-python -m pip install -r requirements.txt
-python -m pytest -q
-
-# Primary EMA-smoothed ETF universe
-python -m scripts.dataloader.monthly_etf_filtration_2 \
-  --prices datasets/csv/NewClosePrice.csv \
-  --volumes datasets/csv/Volume.csv \
-  --business-dates datasets/excel/business_dates.xlsx \
-  --top-n 100 --benchmark SPY --spy-filter smart \
-  --lookback-days 90 --score-ema-alpha 0.5
-
-# Rolling-score robustness universe
-python -m scripts.dataloader.monthly_etf_filtration \
-  --top-n 100 --rolling-score-months 3
-
-# Advanced Bayesian-CVaR policy
-python -m scripts.runs.run -c advanced_smart_bayesian.yaml
-
-# Strategy-only champion/challenger experiment
-python -m scripts.runs.strategy_run -c strategy_smart.yaml
-
-# Notebook replacement
-python -m scripts.runs.final_results_simple --configs advanced_smart_bayesian.yaml
-
-# Rebuild dashboard from existing results
-python -m scripts.results.interactive_report \
-  --result-folder results/advanced_smart_bayesian
-
-# Synthetic reporting smoke test — not a performance result
-python -m scripts.runs.synthetic_smoke
-```
-
-## Core changes
-
-1. **Holding-period posterior scenarios.** Daily simulated returns are aggregated over the configured horizon, so the optimizer and forward CVaR timer use the same monthly unit as execution.
-2. **Model-consistent CVaR policy.** `return_cvar_constraint` maximizes posterior expected holding-period return subject to a scenario CVaR budget and turnover cost.
-3. **Cash overlay preserved.** Exposure reductions are no longer renormalized back to 100% risky assets.
-4. **Backward + forward risk timers.** The portfolio controller combines realized/GARCH volatility with posterior-predictive CVaR, then adds a bounded conviction timer from Kelly, payoff asymmetry and signal quality.
-5. **Stable model selection.** Candidate recipes are ranked using validation and internal-test performance plus a degradation penalty. The next month is not used for selection.
-6. **Executed weights are state.** When partial rebalancing uses `alpha < 1`, next month starts from the actual executed weights, not the unreachable target.
-7. **Actual model matrices.** Every rebalance can save the covariance and correlation matrices used by the model to `risk_matrices.json`.
-8. **ETF inception protection.** Universe metrics count observations before filling and never backward-fill pre-listing history.
-9. **Research statistics.** Overall/train/test metrics, rolling Sharpe and Sortino, win rate, average drawdown, expectancy, profit factor, PSR and DSR are exported.
-10. **Interactive audit.** The dashboard shows performance versus SPY/equal-weight proxy, drawdown, risk, turnover, risky exposure, eligible/selected universes, actual model matrices, smart signals and monthly min/max weight-filterable tables.
-
-## Result folder contract
-
-A normal run writes:
-
-- `pnl.csv`, `preds.csv`, `real.csv`, `model.csv`
-- `weights.xlsx` with target and executed weights
-- `selection_audit.csv`, `smart_rebalance_audit.csv`
-- `forecast_risk.csv`, `dynamic_parameter_history.csv`
-- `risk_matrices.json`, `run_metadata.json`
-- `train_test_metrics.csv`, `rolling_metrics.csv`
-- `interactive_report.html`
-
-## Legacy runners
-
-`combined_run.py`, `combined_strategy_run.py`, `new_run.py`, and `new_run2.py` are retained for reproducibility of older experiments. They are not the recommended path for journal results because they contain legacy in-sample alpha/model comparison logic. New journal tables should be generated through `run.py` or `strategy_run.py` with `use_backtest_engine: true`.
-
-<!-- END SOURCE FILE: md files/README_V2.md -->
 
 ---
 
