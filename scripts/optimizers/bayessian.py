@@ -77,11 +77,13 @@ class BayessianCVaR(BaseCVaR):
         vol = np.std(portfolio_returns, ddof=1) #+ 1e-8
         vol = max(vol, 1e-8)
         
+        # # 1 easy way to calculate cvar
         # losses = -portfolio_returns
         # losses = losses[np.isfinite(losses)]
         # var_threshold = np.quantile(losses, self.alpha_level)
         # cvar_loss = losses[losses >= var_threshold].mean()
         
+        # 2 way to calculate cvar using function
         cvar_loss = tail_cvar_loss(
             pred_returns,
             weights,
@@ -114,13 +116,16 @@ class BayessianCVaR(BaseCVaR):
             optimization_func = -score
             
         elif method_type == "expected_returns":
+            # # 1 way
             # expected_returns = np.mean(self.pred_returns, axis=0)
             # optimization_func = -np.dot(expected_returns.T, weights)
             
+            # # 2 way - best
             # expected_returns = np.nanmean(pred_returns, axis=0)
             # variance_penalty = float(np.dot(weights.T, np.dot(self.cov_matrix, weights)))
             # optimization_func = -float(np.dot(expected_returns, weights)) + risk_aversion * variance_penalty
             
+            # 3 way - new
             variance_penalty = float(np.dot(weights.T, np.dot(self.cov_matrix, weights)))
             optimization_func = -mean_ret + risk_aversion * variance_penalty
             

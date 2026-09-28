@@ -1,319 +1,303 @@
-import sys
-import os
+from __future__ import annotations
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from typing import Any
-from beartype import beartype
-
-from scripts.calculations.matrix import *
-from scripts.models.base import BaseModel
+try:
+    from beartype import beartype
+except ImportError:  # pragma: no cover
+    def beartype(obj):
+        return obj
 
 from scripts.calculations.covariance_cleaning import estimate_covariance
+from scripts.calculations.matrix import make_positive_semifinite_matrix
+from scripts.models.base import BaseModel
+
+EPS = 1e-12
+
 
 class BayessianModel(BaseModel):
+    """Bayesian-shrinkage posterior-predictive scenario model.
+
+    The class name is intentionally kept as ``BayessianModel`` for registry and
+    configuration compatibility with the original project.
+
+    Important unit convention:
+    - historical inputs are daily returns;
+    - ``prediction()`` emits holding-period scenarios for ``horizon`` days;
+    - if ``scenario_return_type`` is ``log-returns``, daily simulated log returns
+      are summed; if it is ``returns``, daily simple returns are compounded.
+    """
+
     def __init__(
         self,
         config: dict[str, Any],
         etfs_list: list,
         historical_returns: pd.DataFrame,
         historical_ewma_returns: pd.DataFrame,
-        future_returns: np.ndarray
+        future_returns: np.ndarray,
     ):
-        
-        self.config = config
+        self.config = dict(config)
         super().__init__(self.config, etfs_list, historical_returns, historical_ewma_returns, future_returns)
-        
+
         self.meanReturnType = self.config.get("mean_return", "sampled")
         self.distType = self.config.get("distribution", "t_student")
         self.posteriorType = self.config.get("posterior", "horseshoe")
         self.matrixType = self.config.get("matrix_type", "fast")
-        self.is_sampled_mean = self.config.get("is_sampled_mean", False)
+        self.is_sampled_mean = bool(self.config.get("is_sampled_mean", False))
         self.random_state = int(self.config.get("random_state", 42))
         self.rng = np.random.default_rng(self.random_state)
-        
-        self.count_etf = len(self.etfs_list)
-        self.len_returns = len(future_returns)
-            
-        self.n_samples = self.config.get("n_samples", 1000) if self.is_sampled_mean else 1
-        self.posterior_draws = np.empty((self.len_returns, self.count_etf), dtype=float)
-        # number of distinct posterior-predictive scenarios passed to the CVaR problem
-        self.n_scenarios = int(self.config.get("n_scenarios", 1000))
-        # audit exports (no effect on decisions): dimension and conditioning of the estimated dependence
-        self.last_n_obs = -1
-        self.last_cov_cond = float("nan")
-        self.last_eff_rank = float("nan")
-        
-        
-    def _returns_frame(self, df: pd.DataFrame) -> pd.DataFrame:
-        if 'Date' in df.columns:
-            df = df.drop('Date', axis=1)
-        return df.apply(pd.to_numeric, errors='coerce').replace([np.inf, -np.inf], np.nan).fillna(0.0)
-        
-        
-    @beartype
-    def calculate_prior_mean_variance(self) -> tuple[float, float]:        
-        returns = self._returns_frame(self.ewma_returns)
-        prior_mean_0 = float(returns.mean().mean())
-        squared_prior_variance_0 = float((returns.std(ddof=1) ** 2).mean())
-        if not np.isfinite(squared_prior_variance_0) or squared_prior_variance_0 <= 1e-12:
-            squared_prior_variance_0 = 1e-6
-        return prior_mean_0, squared_prior_variance_0
 
+        self.count_etf = len(self.etfs_list)
+        self.len_returns = len(np.asarray(future_returns))
+        
+        self.horizon = int(self.config.get("horizon", self.len_returns or 21))
+        self.n_samples = int(self.config.get("n_samples", 1000))
+        self.n_scenarios = int(self.config.get("n_scenarios", self.n_samples))
+        self.scenario_return_type = str(self.config.get("scenario_return_type", self.config.get("return_type", "log-returns")))
+
+        self.last_covariance_daily: np.ndarray | None = None
+        self.last_covariance_horizon: np.ndarray | None = None
+        self.last_correlation: np.ndarray | None = None
+        self.last_posterior_mean_daily: np.ndarray | None = None
+        self.last_posterior_mean_horizon: np.ndarray | None = None
+        self.last_daily_scenario_paths: np.ndarray | None = None
+
+    def _returns_frame(self, df: pd.DataFrame) -> pd.DataFrame:
+        # Nested walk-forward inputs normally carry dates in the index, while the
+        # outer run path may still provide an explicit ``Date`` column.  Start from
+        # a copy in both cases; otherwise ``x`` is undefined for index-dated frames.
+        x = df.copy()
+        if "Date" in x.columns:
+            x = x.drop(columns=["Date"], errors="ignore")
+        x = x.reindex(columns=self.etfs_list)
+        return (
+            x.apply(pd.to_numeric, errors="coerce")
+            .replace([np.inf, -np.inf], np.nan)
+            .fillna(0.0)
+        )
+
+    @beartype
+    def calculate_prior_mean_variance(self) -> tuple[float, float]:
+        returns = self._returns_frame(self.ewma_returns)
+        prior_mean = float(returns.mean().mean()) if not returns.empty else 0.0
+        prior_var = float((returns.std(ddof=1) ** 2).mean()) if len(returns) > 1 else 1e-6
+        if not np.isfinite(prior_var) or prior_var <= EPS:
+            prior_var = 1e-6
+        return prior_mean, prior_var
 
     def get_returns_with_distribution(self, returns_etf: pd.Series, mu_i: float) -> tuple[float, float, np.ndarray]:
-        sigma_i = float(returns_etf.std(ddof=1))
-        if not np.isfinite(sigma_i) or sigma_i <= 1e-12:
-            sigma_i = 1e-4
-        
+        x = pd.to_numeric(returns_etf, errors="coerce").dropna().to_numpy(dtype=float)
+        sigma = float(np.std(x, ddof=1)) if x.size > 1 else 1e-4
+        sigma = max(sigma, 1e-4)
+        size = max(2, self.n_samples)
         if self.meanReturnType == "historical":
-            r_i = returns_etf.values.astype(float)
-            mean_return = float(np.mean(r_i))
-            
-        elif self.meanReturnType == "sampled":
-            if self.distType == "normal":
-                r_i = self.rng.normal(mu_i, sigma_i, self.n_samples)
-            elif self.distType == "t_student":
-                df = int(self.config.get("df", 5)) # degrees of freedom for t-distribution
-                r_i = mu_i + sigma_i * self.rng.standard_t(df, size=self.n_samples)
-            elif self.distType == "laplace":
-                r_i = self.rng.laplace(mu_i, sigma_i / np.sqrt(2), self.n_samples)
-            elif self.distType == "lognormal":
-                r_i = self.rng.lognormal(mean=mu_i, sigma=sigma_i, size=self.n_samples)
-            else:
-                raise ValueError(f"Unsupported distribution: {self.distType}")
-            mean_return = float(np.mean(r_i))
-            
+            draws = x if x.size else np.array([0.0])
+        elif self.distType == "normal":
+            draws = self.rng.normal(mu_i, sigma, size=size)
+        elif self.distType in {"t_student", "t-student"}:
+            df = max(3, int(self.config.get("df", 5)))
+            # scale so the t draw has approximately sigma standard deviation
+            scale = sigma * np.sqrt((df - 2.0) / df)
+            draws = mu_i + scale * self.rng.standard_t(df, size=size)
+        elif self.distType == "laplace":
+            draws = self.rng.laplace(mu_i, sigma / np.sqrt(2.0), size=size)
         else:
-            raise ValueError(f"Unsupported mean return type: {self.meanReturnType}")
-
-        return sigma_i**2, mean_return, np.asarray(r_i, dtype=float)
-
+            raise ValueError(f"Unsupported distribution: {self.distType}")
+        return sigma ** 2, float(np.mean(draws)), np.asarray(draws, dtype=float)
 
     def sample_posterior(self, returns: np.ndarray, prior_mean: float, prior_var: float) -> np.ndarray:
-        returns = np.asarray(returns, dtype=float)
-        sample_mean = float(np.mean(returns))
-        sample_var = float(np.var(returns, ddof=1)) if returns.size > 1 else prior_var
+        x = np.asarray(returns, dtype=float)
+        sample_mean = float(np.mean(x))
+        sample_var = float(np.var(x, ddof=1)) if x.size > 1 else float(prior_var)
         sample_var = max(sample_var, 1e-10)
         prior_var = max(float(prior_var), 1e-10)
+        size = max(2, self.n_samples)
 
         if self.posteriorType == "gaussian":
-            tau_post = 1 / (1 / prior_var + self.n_samples / sample_var)
-            mu_post = tau_post * (prior_mean / prior_var + self.n_samples * sample_mean / sample_var)
-            return self.rng.normal(mu_post, np.sqrt(tau_post), size=self.n_samples)
-            
-            # sample_mean, sample_var = np.mean(returns), np.var(returns)
-            # shrinkage = sample_var / (sample_var + prior_var + 1e-8)
-            # mu_post = shrinkage * sample_mean + (1 - shrinkage) * prior_mean
-            # tau_post = 1.0 / (1.0/prior_var + self.n_samples/sample_var)
-            # return np.random.normal(mu_post, np.sqrt(tau_post), size=self.n_samples)
-        
-        elif self.posteriorType == "empirical_bayes":
-            # James-Stein style shrinkage
-            # grand_mean = np.mean(returns)
-            # shrinkage = max(0, 1 - (len(returns) - 3) * sample_var / (self.n_samples * (sample_mean - grand_mean)**2 + 1e-10))
-            # mu_post = shrinkage * sample_mean + (1 - shrinkage) * grand_mean
-            # sigma_post = np.sqrt(sample_var * shrinkage)
-            # return np.random.normal(mu_post, sigma_post, size=self.n_samples)
-            
-            shrinkage = sample_var / (sample_var + prior_var)
-            mu_post = shrinkage * sample_mean + (1 - shrinkage) * prior_mean
-            sigma_post = np.sqrt(sample_var * max(shrinkage, 1e-4))
-            return self.rng.normal(mu_post, sigma_post, size=self.n_samples)
-
-        elif self.posteriorType == "t_student":
-            df = self.config.get("df", 5)
-            scale = np.sqrt(sample_var * max((df - 2) / df, 1e-6))
-            return sample_mean + scale * self.rng.standard_t(df, size=self.n_samples)
-
-        elif self.posteriorType == "laplace":
-            b = np.sqrt(sample_var / 2)
-            return self.rng.laplace(sample_mean, b, size=self.n_samples)
-
-        elif self.posteriorType == "horseshoe":
+            tau_post = 1.0 / (1.0 / prior_var + x.size / sample_var)
+            mu_post = tau_post * (prior_mean / prior_var + x.size * sample_mean / sample_var)
+            return self.rng.normal(mu_post, np.sqrt(tau_post), size=size)
+        if self.posteriorType == "empirical_bayes":
+            data_weight = prior_var / (prior_var + sample_var / max(x.size, 1))
+            mu_post = data_weight * sample_mean + (1.0 - data_weight) * prior_mean
+            return self.rng.normal(mu_post, np.sqrt(sample_var / max(x.size, 1)), size=size)
+        if self.posteriorType in {"t_student", "t-student"}:
+            df = max(3, int(self.config.get("df", 5)))
+            scale = np.sqrt(sample_var * (df - 2.0) / df)
+            return sample_mean + scale * self.rng.standard_t(df, size=size)
+        if self.posteriorType == "laplace":
+            return self.rng.laplace(sample_mean, np.sqrt(sample_var / 2.0), size=size)
+        if self.posteriorType == "horseshoe":
             tau = np.clip(abs(self.rng.standard_cauchy()), 0.01, 5.0)
             lam = np.clip(abs(self.rng.standard_cauchy()), 0.01, 5.0)
-            shrinkage = tau * lam / (1.0 + tau * lam)
-            mu_post = sample_mean * shrinkage + prior_mean * (1.0 - shrinkage)
-            sigma_post = np.sqrt(sample_var) * max(shrinkage, 0.05)
-            return self.rng.normal(mu_post, sigma_post, size=self.n_samples)
-
-        elif self.posteriorType == "spike_slab":
-            p_active = float(self.config.get("spike_slab_p", 0.5))  # probability of being "active"
-            # is_active = self.rng.binomial(1, p_active)
-            # if is_active:
-            #     return self.rng.normal(sample_mean, np.sqrt(sample_var), size=self.n_samples)
-            # return np.zeros(self.n_samples)
-            active = self.rng.binomial(1, p_active, size=self.n_samples)
-            draws = self.rng.normal(sample_mean, np.sqrt(sample_var), size=self.n_samples)
-            return active * draws
-
-        else:
-            raise ValueError(f"Unknown posterior type: {self.posteriorType}")
-
+            data_weight = np.clip(tau * lam / (1.0 + tau * lam), float(self.config.get("shrink_floor", 0.35)), 1.0)
+            mu_post = data_weight * sample_mean + (1.0 - data_weight) * prior_mean
+            posterior_sd = np.sqrt(sample_var / max(x.size, 1)) * max(data_weight, 0.05)
+            return self.rng.normal(mu_post, max(posterior_sd, 1e-8), size=size)
+        if self.posteriorType == "spike_slab":
+            p_active = float(self.config.get("spike_slab_p", 0.5))
+            active = self.rng.binomial(1, p_active, size=size)
+            return active * self.rng.normal(sample_mean, np.sqrt(sample_var), size=size)
+        raise ValueError(f"Unknown posterior type: {self.posteriorType}")
 
     @beartype
     def get_posterior_draws(self) -> np.ndarray:
-        prior_mean_0, squared_prior_variance_0 = self.calculate_prior_mean_variance()
-        mu_i = np.random.normal(prior_mean_0, np.sqrt(squared_prior_variance_0), self.count_etf)
+        prior_mean, prior_var = self.calculate_prior_mean_variance()
         returns_df = self._returns_frame(self.returns)
-        
-        for ind, etf in enumerate(self.etfs_list):
-            series = returns_df[etf] if etf in returns_df.columns else pd.Series(np.zeros(len(returns_df)))
-            r_i = self.get_returns_with_distribution(series, mu_i[ind])[-1]
-            posterior_samples = self.sample_posterior(r_i, prior_mean_0, squared_prior_variance_0)
-            self.posterior_draws[:, ind] = np.mean(posterior_samples) if self.is_sampled_mean else posterior_samples
-            # print(f"{self.posterior_draws.shape}", f"{posterior_samples.shape=}")
+        draws = np.zeros((max(2, self.n_samples), self.count_etf), dtype=float)
+        prior_mu = self.rng.normal(prior_mean, np.sqrt(prior_var), self.count_etf)
+        for j, etf in enumerate(self.etfs_list):
+            series = returns_df[etf] if etf in returns_df else pd.Series(dtype=float)
+            sampled = self.get_returns_with_distribution(series, float(prior_mu[j]))[-1]
+            post = self.sample_posterior(sampled, prior_mean, prior_var)
+            draws[:, j] = post[: draws.shape[0]]
+        return np.nan_to_num(draws, nan=0.0, posinf=0.0, neginf=0.0)
 
-        return np.nan_to_num(self.posterior_draws, nan=0.0, posinf=0.0, neginf=0.0)
+    def _posterior_mean_vector(self) -> np.ndarray:
+        rdf = self._returns_frame(self.returns)
+        edf = self._returns_frame(self.ewma_returns)
+        sample_mean = rdf.mean(axis=0).to_numpy(dtype=float)
+        prior_i = edf.mean(axis=0).to_numpy(dtype=float)
 
+        # Deterministic empirical-Bayes-style shrinkage is preferred for repeatable
+        # cross-sectional signals; optional random horseshoe draws can be enabled.
+        if bool(self.config.get("random_horseshoe_mean", False)):
+            tau = np.clip(np.abs(self.rng.standard_cauchy(self.count_etf)), 0.01, 5.0)
+            lam = np.clip(np.abs(self.rng.standard_cauchy(self.count_etf)), 0.01, 5.0)
+            kappa = np.clip(tau * lam / (1.0 + tau * lam), float(self.config.get("shrink_floor", 0.35)), 1.0)
+        else:
+            n = max(len(rdf), 1)
+            sample_var = rdf.var(axis=0, ddof=1).fillna(0.0).to_numpy(dtype=float)
+            prior_strength = float(self.config.get("prior_strength", 63.0))
+            kappa = n / (n + prior_strength * (1.0 + sample_var / max(float(np.nanmedian(sample_var)), EPS)))
+            kappa = np.clip(kappa, float(self.config.get("shrink_floor", 0.35)), 1.0)
+        mu = kappa * sample_mean + (1.0 - kappa) * prior_i
+
+        # 12-1 cross-sectional momentum tilt, calculated only from history.
+        tilt = float(self.config.get("mom_tilt", 0.15))
+        look = int(self.config.get("mom_lookback", 252))
+        gap = int(self.config.get("mom_gap", 21))
+        if tilt != 0.0 and len(rdf) >= look:
+            window = rdf.iloc[-look:-gap] if gap > 0 else rdf.iloc[-look:]
+            if self.scenario_return_type == "log-returns":
+                mom = window.sum(axis=0).to_numpy(dtype=float)
+            else:
+                mom = (1.0 + window).prod(axis=0).to_numpy(dtype=float) - 1.0
+            sd = float(np.nanstd(mom))
+            if sd > EPS:
+                z = (mom - float(np.nanmean(mom))) / sd
+                daily_scale = max(float(np.nanmedian(rdf.std(axis=0, ddof=1))), EPS)
+                mu = mu + tilt * z * daily_scale
+
+        # Guard against implausible daily means dominating the optimizer.
+        mean_clip_sigma = float(self.config.get("mean_clip_sigma", 2.0))
+        daily_vol = rdf.std(axis=0, ddof=1).fillna(0.0).to_numpy(dtype=float)
+        mu = np.clip(mu, -mean_clip_sigma * daily_vol, mean_clip_sigma * daily_vol)
+        return np.nan_to_num(mu, nan=0.0, posinf=0.0, neginf=0.0)
+
+    def _estimate_daily_covariance(self) -> tuple[np.ndarray, np.ndarray]:
+        rdf = self._returns_frame(self.returns)
+        method = str(self.config.get("cov_method", "ledoit_wolf"))
+        try:
+            cov = np.asarray(estimate_covariance(rdf, method=method), dtype=float)
+        except Exception:
+            cov = np.atleast_2d(np.cov(rdf.to_numpy(dtype=float), rowvar=False))
+        cov = np.nan_to_num((cov + cov.T) / 2.0, nan=0.0, posinf=0.0, neginf=0.0)
+        cov = make_positive_semifinite_matrix(cov, self.matrixType)
+        eigvals, eigvecs = np.linalg.eigh((cov + cov.T) / 2.0)
+        eigvals = np.clip(eigvals, 1e-12, None)
+        cov = eigvecs @ np.diag(eigvals) @ eigvecs.T
+        std = np.sqrt(np.clip(np.diag(cov), EPS, None))
+        corr = cov / np.outer(std, std)
+        corr = np.clip(corr, -1.0, 1.0)
+        np.fill_diagonal(corr, 1.0)
+        self.last_covariance_daily = cov
+        self.last_correlation = corr
+        return cov, corr
+
+    def _daily_shock_cube(self, n_scenarios: int, horizon: int) -> np.ndarray:
+        cov, _ = self._estimate_daily_covariance()
+        chol = np.linalg.cholesky(cov + 1e-12 * np.eye(cov.shape[0]))
+        shape = (int(n_scenarios), int(horizon), self.count_etf)
+        if self.distType in {"t_student", "t-student"}:
+            df = max(3, int(self.config.get("df", 5)))
+            # variance-standardized t innovations
+            z = self.rng.standard_t(df, size=shape) * np.sqrt((df - 2.0) / df)
+        else:
+            z = self.rng.standard_normal(size=shape)
+        return z @ chol.T
 
     @beartype
     def get_multivariate_shock(self) -> np.ndarray:
-        returns_df = self._returns_frame(self.returns[self.etfs_list])
-        cov_method = self.config.get("cov_method", "ledoit_wolf")
-        try:
-            cov_matrix = estimate_covariance(returns_df, method=cov_method)
-        except Exception:
-            cov_matrix = np.cov(np.nan_to_num(returns_df, nan=0.0), rowvar=False)
-        
-        stds = np.sqrt(np.clip(np.diag(cov_matrix), 1e-12, None))
-        inv_stds = np.diag(1.0 / np.where(stds < 1e-10, 1e-10, stds))
-        
-        corr_matrix = np.dot(np.dot(inv_stds, cov_matrix), inv_stds)
-        corr_matrix = make_positive_semifinite_matrix(corr_matrix, self.matrixType)
-        cov_matrix = np.dot(np.dot(np.diag(stds), corr_matrix), np.diag(stds))
-        
-        cov_matrix = cholesky_decomposition(cov_matrix)
-        
-        # independent shocks for every day of the horizon
-        if self.is_sampled_mean:
-            # 1. Generate standard normal random variables in 3D: (21, 1000, 211)
-            if self.distType in {"t_student", "t-student"}:
-                df = int(self.config.get("df", 5))
-                # Match the 3D shape for the chi-square scaling factor
-                g = self.rng.chisquare(df=df, size=(self.len_returns, self.n_samples)) / df
-                z = self.rng.standard_normal(size=(self.len_returns, self.n_samples, self.count_etf)) / np.sqrt(g)[:, :, None]
-            else:
-                z = self.rng.standard_normal(size=(self.len_returns, self.n_samples, self.count_etf))
+        return self._daily_shock_cube(max(2, self.n_samples), 1)[:, 0, :]
 
-            # 2. Matrix multiply 3D array by 2D Cholesky matrix
-            # Shape transformation: (21, 1000, 211) @ (211, 211) -> (21, 1000, 211)
-            shocks_3d = z @ cov_matrix.T 
-            
-            # 3. Take the mean across axis 1 (the 1000 samples dimension)
-            # Shape transformation: (21, 1000, 211) -> (21, 211)
-            return np.mean(shocks_3d, axis=1)
-            
-        else:
-            # Fallback for when is_sampled_mean is False (original logic)
-            if self.distType in {"t_student", "t-student"}:
-                df = int(self.config.get("df", 5))
-                g = self.rng.chisquare(df=df, size=self.n_samples) / df
-                z = self.rng.standard_normal(size=(self.n_samples, self.count_etf)) / np.sqrt(g)[:, None]
-            else:
-                z = self.rng.standard_normal(size=(self.n_samples, self.count_etf))
-
-            return z @ cov_matrix.T
-    
-        # return calculate_multivariate_shock_matrix(cov_matrix, self.len_returns)
+    def get_risk_matrix_snapshot(self) -> dict[str, Any]:
+        if self.last_covariance_daily is None or self.last_correlation is None:
+            self._estimate_daily_covariance()
+        # Keep large matrices as NumPy arrays while the backtest is running.
+        # Converting every monthly N x N matrix to nested Python lists here can
+        # multiply memory usage several-fold; across a long walk-forward run this
+        # can trigger an OS-level OOM kill during final JSON serialization.
+        return {
+            "tickers": list(self.etfs_list),
+            "covariance_daily": np.asarray(self.last_covariance_daily, dtype=float).copy(),
+            "covariance_horizon": np.asarray(
+                self.last_covariance_horizon
+                if self.last_covariance_horizon is not None
+                else self.last_covariance_daily * self.horizon,
+                dtype=float,
+            ).copy(),
+            "correlation": np.asarray(self.last_correlation, dtype=float).copy(),
+            "posterior_mean_daily": None if self.last_posterior_mean_daily is None else np.asarray(self.last_posterior_mean_daily, dtype=float).copy(),
+            "posterior_mean_horizon": None if self.last_posterior_mean_horizon is None else np.asarray(self.last_posterior_mean_horizon, dtype=float).copy(),
+            "horizon": int(self.horizon),
+            "return_type": self.scenario_return_type,
+            "cov_method": str(self.config.get("cov_method", "ledoit_wolf")),
+            # Export the dimension/information ratio used by Proposition 6.
+            # These values make the historical theorem bridge independent of
+            # assumptions about the original raw-data files.
+            "estimation_observations": int(self.returns.shape[0]),
+            "selected_dimension": int(self.count_etf),
+        }
 
 
-    def _posterior_mean_vector(self) -> np.ndarray:
-        """Per-ETF posterior MEAN (N,) with a RETURN SIGNAL injected :
-          (a) PER-ETF PRIOR  -> shrink toward each ETF's OWN EWMA mean (not the global grand mean);
-          (b) GENTLER horseshoe -> floor the shrinkage kappa so cross-sectional signal survives;
-          (c) MOMENTUM TILT  -> add a 12-1 month cross-sectional momentum z-score.
-        Deterministic via self.rng. Knobs (config, standard defaults): shrink_floor=0.5,
-        mom_tilt=0.3, mom_lookback=252, mom_gap=21."""
-        cols = list(self.etfs_list)
-        rdf = self._returns_frame(self.returns).reindex(columns=cols).fillna(0.0)        # (T, N)
-        edf = self._returns_frame(self.ewma_returns).reindex(columns=cols).fillna(0.0)
-        sample_mean = rdf.mean(axis=0).values                                            # (N,)
-        prior_i = edf.mean(axis=0).values                                                # (N,) per-ETF prior
-        # (b) gentler horseshoe shrinkage toward the PER-ETF prior
-        tau = np.clip(np.abs(self.rng.standard_cauchy(self.count_etf)), 0.01, 5.0)
-        lam = np.clip(np.abs(self.rng.standard_cauchy(self.count_etf)), 0.01, 5.0)
-        kappa = np.clip(tau * lam / (1.0 + tau * lam), float(self.config.get("shrink_floor", 0.5)), 1.0)
-        mu_post = kappa * sample_mean + (1.0 - kappa) * prior_i
-        # (c) cross-sectional momentum tilt (12-1 month), z-scored, scaled by typical daily vol
-        tilt = float(self.config.get("mom_tilt", 0.3))
-        look = int(self.config.get("mom_lookback", 252)); gap = int(self.config.get("mom_gap", 21))
-        if tilt > 0.0 and rdf.shape[0] >= look:
-            win = rdf.iloc[rdf.shape[0] - look: rdf.shape[0] - gap] if gap > 0 else rdf.iloc[rdf.shape[0] - look:]
-            mom = win.sum(axis=0).values
-            sd = float(np.nanstd(mom))
-            if sd > 1e-12:
-                z = (mom - float(np.nanmean(mom))) / sd
-                scale = float(np.nanmedian(rdf.std(axis=0).values))
-                mu_post = mu_post + tilt * z * scale
-        return np.nan_to_num(mu_post, nan=0.0, posinf=0.0, neginf=0.0)
-
-    def _scenario_shocks(self, n_scenarios: int) -> np.ndarray:
-        """(S, N) correlated shocks from the Ledoit-Wolf covariance (same construction as
-        get_multivariate_shock), drawn with self.rng. S DISTINCT rows -> non-degenerate CVaR."""
-        returns_df = self._returns_frame(self.returns[self.etfs_list])
-        cov_method = self.config.get("cov_method", "ledoit_wolf")
-        try:
-            cov_matrix = estimate_covariance(returns_df, method=cov_method)
-        except Exception:
-            cov_matrix = np.cov(np.nan_to_num(returns_df, nan=0.0), rowvar=False)
-        stds = np.sqrt(np.clip(np.diag(cov_matrix), 1e-12, None))
-        inv_stds = np.diag(1.0 / np.where(stds < 1e-10, 1e-10, stds))
-        corr_matrix = np.dot(np.dot(inv_stds, cov_matrix), inv_stds)
-        corr_matrix = make_positive_semifinite_matrix(corr_matrix, self.matrixType)
-        try:   # audit export: condition number and effective rank of the PSD correlation actually used
-            _ev = np.linalg.eigvalsh((corr_matrix + corr_matrix.T) / 2.0)
-            _ev = np.clip(_ev, 0.0, None)
-            self.last_cov_cond = float(_ev.max() / max(_ev.min(), 1e-12))
-            self.last_eff_rank = float(_ev.sum() ** 2 / max((_ev ** 2).sum(), 1e-24))
-            self.last_n_obs = int(returns_df.shape[0])
-        except Exception:
-            pass
-        cov_matrix = np.dot(np.dot(np.diag(stds), corr_matrix), np.diag(stds))
-        cov_matrix = cholesky_decomposition(cov_matrix)
-        S = int(n_scenarios)
-        # ROBUSTNESS ARM: filtered historical simulation. Shocks are RESAMPLED real days
-        # (EWMA-devolatilised, rescaled to current conditional vol), so the joint tail
-        # dependence of actual co-crash days is preserved instead of imposed by an
-        # elliptical family. Only the shock distribution changes; mean, budget, optimizer
-        # and overlay logic are untouched.
-        if self.distType in {"fhs", "filtered_historical"}:
-            X = np.nan_to_num(np.asarray(returns_df, dtype=float), nan=0.0, posinf=0.0, neginf=0.0)
-            if X.ndim == 2 and X.shape[0] >= 120 and X.shape[1] == self.count_etf:
-                T = X.shape[0]
-                lam_e = float(self.config.get("fhs_lambda", 0.94))
-                floor_m = float(self.config.get("fhs_vol_floor", 0.3))
-                full_sd = np.maximum(X.std(axis=0, ddof=1), 1e-12)
-                sig2 = np.empty_like(X)
-                sig2[0] = np.var(X[:60], axis=0) + 1e-10
-                for d in range(1, T):
-                    sig2[d] = lam_e * sig2[d - 1] + (1.0 - lam_e) * X[d - 1] ** 2
-                sig = np.maximum(np.sqrt(np.maximum(sig2, 1e-24)), floor_m * full_sd[None, :])
-                Zs = X / sig
-                idx = self.rng.integers(0, T, S)
-                return np.nan_to_num(Zs[idx] * sig[-1][None, :], nan=0.0, posinf=0.0, neginf=0.0)
-            # insufficient history -> fall through to the parametric generator
-        if self.distType in {"t_student", "t-student"}:
-            df = int(self.config.get("df", 5))
-            g = self.rng.chisquare(df=df, size=(S, 1)) / df
-            z = self.rng.standard_normal(size=(S, self.count_etf)) / np.sqrt(g)
-        else:
-            z = self.rng.standard_normal(size=(S, self.count_etf))
-        return z @ cov_matrix.T
+    def get_scenario_paths(self) -> np.ndarray:
+        """Return the most recently generated daily scenario-path cube (S,H,N)."""
+        if self.last_daily_scenario_paths is None:
+            raise RuntimeError("prediction() must be called before get_scenario_paths().")
+        return np.asarray(self.last_daily_scenario_paths, dtype=float).copy()
 
     @beartype
     def prediction(self) -> np.ndarray:
-        # Previously prediction() returned (horizon x N) with ALL ROWS IDENTICAL
-        # (n_samples=1 broadcast), so CVaR_alpha collapsed to the mean for every alpha.
-        # Now S distinct rows = horseshoe-shrunk mean + correlated shock -> CVaR is a real
-        # tail measure and the confidence-level / controller become load-bearing.
-        # Only the scenario generation changed; horseshoe shrinkage (sample_posterior),
-        # the optimizer, and the turnover penalty are untouched.
-        S = int(getattr(self, "n_scenarios", 1000))
-        mu_post = self._posterior_mean_vector()         # (N,)
-        shocks = self._scenario_shocks(S)               # (S, N)
-        return np.nan_to_num(mu_post[None, :] + shocks, nan=0.0, posinf=0.0, neginf=0.0)
+        S = max(50, int(self.n_scenarios))
+        H = max(1, int(self.horizon))
+        mu_daily = self._posterior_mean_vector()
+        shocks = self._daily_shock_cube(S, H)
+        daily = mu_daily[None, None, :] + shocks
+
+        if self.scenario_return_type == "log-returns":
+            # Additive log-return paths are exactly compatible with the linear CDaR
+            # running-peak construction: cumulative sums are log-wealth changes.
+            self.last_daily_scenario_paths = np.asarray(daily, dtype=float)
+            scenarios = daily.sum(axis=1)
+            cov_h = self.last_covariance_daily * H
+            mu_h = mu_daily * H
+        elif self.scenario_return_type == "returns":
+            daily = np.clip(daily, -0.95, 5.0)
+            # Store the same clipped simple-return draws used to form terminal
+            # scenarios.  The CDaR LP then uses their additive/uncompounded path
+            # coordinate; exact compounded-wealth CDaR is a nonlinear robustness arm.
+            self.last_daily_scenario_paths = np.asarray(daily, dtype=float)
+            scenarios = np.prod(1.0 + daily, axis=1) - 1.0
+            cov_h = np.cov(scenarios, rowvar=False)
+            mu_h = scenarios.mean(axis=0)
+        else:
+            raise ValueError("scenario_return_type must be 'log-returns' or 'returns'")
+
+        self.last_covariance_horizon = np.atleast_2d(np.asarray(cov_h, dtype=float))
+        self.last_posterior_mean_daily = mu_daily
+        self.last_posterior_mean_horizon = np.asarray(mu_h, dtype=float)
+        return np.nan_to_num(scenarios, nan=0.0, posinf=0.0, neginf=0.0)

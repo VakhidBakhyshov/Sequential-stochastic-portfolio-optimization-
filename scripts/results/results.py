@@ -78,7 +78,7 @@ class BaseResults():
         self.model_df = pd.DataFrame(
             {},
             columns=[
-                'log_score', 'waic', 'rank_ic', 'mae', "coverage_95",
+                'log_score', 'predictive_deviance_proxy', 'rank_ic', 'mae', "coverage_95",
                 'sign_precision', 'avg_true_positives', 'r_squared', 'rmse',
                 'avg_predicted_mean', 'avg_true_mean', 'mean_deviation'
             ],

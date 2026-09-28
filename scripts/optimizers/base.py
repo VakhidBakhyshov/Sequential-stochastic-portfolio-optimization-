@@ -51,6 +51,7 @@ class BaseCVaR:
         self.all_methods: list[str] = []
         self.optimal_values: list[float] = []
         self.optimal_weights: list[np.ndarray] = []
+        self.last_lp_diagnostics: dict[str, Any] = {}
         
         
     # @beartype
@@ -129,7 +130,9 @@ class BaseCVaR:
     
     
     def _postprocess_weights(self, weights: np.ndarray) -> np.ndarray:
+        # # 1 method - simple
         # weights = np.where(weights >= self.min_weight, weights, 0) # constraint for min_weight - if weight < min_weight => weight = 0
+        # # weights /= np.sum(weights) # we are normalizing weights after constraint on min_weight
         # return weights
         
         # 2 method - updated + complicated
@@ -141,9 +144,10 @@ class BaseCVaR:
         )
     
     def _solve_return_cvar_lp(self, R: np.ndarray, w_prev: np.ndarray, N: int):
-        """Maximize expected return subject to CVaR_alpha(w) <= budget.
+        """Experiment 2 objective: Maximize expected return subject to  CVaR_alpha(w) <= budget.
         Rockafellar-Uryasev CVaR as a *constraint*, expected return as the objective, with an
-        L1 turnover penalty, solved exactly as a linear program on the (S x N) scenario matrix.
+        L1 turnover penalty. Pure LP (exact). Requires a real (S x N) scenario fan; with the
+        scenario-fan fix R has S=1000 distinct rows, so the CVaR constraint is a genuine tail cap.
         Budget = cvar_budget_mult * CVaR_alpha(equal-weight) -> 'earn the most you can without
         taking more tail risk than naive 1/N' (mult>1 loosens, mult<1 tightens).
         x = [w(N), eta(1), u(S), tp(N), tn(N)].
@@ -155,7 +159,9 @@ class BaseCVaR:
         S = R.shape[0]
         alpha = float(self.alpha_level)
         lam = float(self.turnover_penalty)
-        wmax = self.bound[1] if self.bound[1] is not None else 1.0
+        configured_wmax = self.bound[1] if self.bound[1] is not None else 1.0
+        # A max-weight below 1/N makes the fully-invested constraint infeasible.
+        wmax = max(float(configured_wmax), 1.0 / max(N, 1))
         mult = float(self.config.get("cvar_budget_mult", 1.0))
         coef = 1.0 / max((1.0 - alpha) * S, 1e-12)
         mu = R.mean(axis=0)                                   # per-ETF expected return (N,)
@@ -207,39 +213,37 @@ class BaseCVaR:
         if res.success and np.all(np.isfinite(res.x[:N])):
             w = np.clip(res.x[:N], 0.0, wmax)
             if w.sum() > 1e-9:
-                # --- audit export (no effect on the decision): binding status and shadow price of the
-                #     CVaR budget row (last inequality). SciPy reports the minimisation marginal (<= 0);
-                #     the economic shadow price of loosening the budget in the maximisation is its negative.
+                w = w / w.sum()
+                losses = -(R @ w)
+                var_w = float(np.quantile(losses, alpha))
+                tail_w = losses[losses >= var_w]
+                cvar_w = float(tail_w.mean()) if tail_w.size else var_w
                 try:
-                    port_w = R @ w
-                    losses_w = -port_w
-                    # exact sample-average CVaR with fractional tail mass: the quantity the
-                    # Rockafellar-Uryasev row measures (identical to min_eta eta + coef*sum[(L-eta)+])
-                    mass = (1.0 - alpha) * S
-                    sl = np.sort(losses_w)[::-1]; k = int(np.floor(mass)); frac = mass - k
-                    cvar_w = (float(sl[:k].sum()) + (frac * float(sl[k]) if (frac > 1e-12 and k < S) else 0.0)) / max(mass, 1e-12)
-                    try:
-                        marg = float(np.asarray(res.ineqlin.marginals, dtype=float)[-1])
-                    except Exception:
-                        marg = float("nan")
-                    slack = float(budget - cvar_w)          # true slack of the tail budget at the solution
-                    # binding: the constraint carries a positive shadow price (the LP row residual is not
-                    # informative because the epigraph variables can absorb slack at zero cost)
-                    shadow = -marg if np.isfinite(marg) else float("nan")
-                    LAST_LP_DIAG.clear()
-                    LAST_LP_DIAG.update({
-                        "lp_success": True, "lp_alpha_level": alpha, "lp_budget": float(budget),
-                        "lp_cvar_ew": float(cvar_ew), "lp_cvar_at_solution": cvar_w, "lp_slack": slack,
-                        "lp_binding": bool((np.isfinite(shadow) and shadow > 1e-10) or slack <= 1e-9),
-                        "lp_dual_min": marg, "lp_shadow_price": shadow,
-                        "lp_objective_return": float(mu @ w), "lp_turnover_target_l1": float(np.sum(np.abs(w - np.asarray(w_prev, dtype=float)[:N]))),
-                        "lp_n_assets": int(N), "lp_n_scenarios": int(S),
-                    })
-                except Exception as _e:
-                    LAST_LP_DIAG.clear(); LAST_LP_DIAG.update({"lp_success": True, "lp_message": f"diag failed: {_e}"})
+                    slack = float(np.asarray(res.ineqlin.residual, dtype=float)[-1])
+                    marginal_min = float(np.asarray(res.ineqlin.marginals, dtype=float)[-1])
+                except Exception:
+                    slack = float(budget - cvar_w)
+                    marginal_min = float("nan")
+                self.last_lp_diagnostics = {
+                    "lp_success": True,
+                    "cvar_level": alpha,
+                    "cvar_budget": float(budget),
+                    "cvar_value": cvar_w,
+                    "cvar_constraint_slack": slack,
+                    "cvar_constraint_binding": bool(abs(slack) <= max(1e-8, 1e-6 * max(abs(budget), 1.0))),
+                    "cvar_budget_dual_scipy_min": marginal_min,
+                    "cvar_budget_shadow_price_max": -marginal_min if np.isfinite(marginal_min) else float("nan"),
+                    "objective_expected_return": float(mu @ w),
+                    "target_turnover_l1": float(np.sum(np.abs(w - np.asarray(w_prev, dtype=float)[:N]))),
+                }
                 return w
+        self.last_lp_diagnostics = {
+            "lp_success": False,
+            "message": str(getattr(res, "message", "")),
+            "cvar_level": alpha,
+            "cvar_budget": float(budget),
+        }
         print(f"[RC-LP] not successful ({getattr(res,'message','')}); fallback SLSQP")
-        LAST_LP_DIAG.clear(); LAST_LP_DIAG.update({"lp_success": False, "lp_message": str(getattr(res, 'message', ''))})
         return None
 
     @beartype
@@ -250,10 +254,14 @@ class BaseCVaR:
         if w_prev.shape[0] != count_etf or not np.all(np.isfinite(w_prev)):
             w_prev = x0
 
+        # ---- Experiment 2: exact LP for MAX-return s.t. CVaR constraint ----
         if method_type == "return_cvar_constraint":
             w_lp = self._solve_return_cvar_lp(np.asarray(args[0], dtype=float), w_prev, count_etf)
             if w_lp is not None:
-                weights = self._postprocess_weights(w_lp)
+                # Do not threshold the exact LP solution afterwards: hard min-weight
+                # cleanup can violate the CVaR budget that the LP just enforced.
+                weights = np.asarray(w_lp, dtype=float)
+                weights = weights / max(float(weights.sum()), 1e-12)
                 res = float(self.function_to_optimize(weights, *args, method_type))
                 self.optimal_values.append(res)
                 self.optimal_weights.append(weights)

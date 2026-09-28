@@ -1,0 +1,106 @@
+# Optuna research calibration. Run from the repository root:
+# python -m scripts.optimization.optuna_calibration --config scripts/configs/optuna_calibration.yaml
+study_name: advanced_smart_bayesian_risk_return
+base_config: scripts/configs/advanced_smart_bayesian.yaml
+entrypoint: scripts.runs.run
+output_folder: results/calibration/advanced_smart_bayesian_risk_return
+trial_results_root: results/calibration_runs
+n_trials: 60
+evaluation_sample: test
+trial_timeout_seconds: null
+show_progress_bar: true
+seed: 42
+
+sampler:
+  seed: 42
+  population_size: 20
+
+# Paths address the existing YAML's mixed list/dictionary structure.
+search_space:
+  optimizer.0.max_weight:
+    type: float
+    low: 0.06
+    high: 0.16
+    step: 0.01
+  optimizer.0.turnover_penalty:
+    type: float
+    low: 0.0005
+    high: 0.008
+    log: true
+  optimizer.0.confidence_level:
+    type: categorical
+    choices: [0.90, 0.95, 0.975, 0.99]
+  optimizer.0.cvar_budget_mult:
+    type: float
+    low: 0.75
+    high: 1.25
+    step: 0.05
+  model.prior_strength:
+    type: float
+    low: 21.0
+    high: 126.0
+    step: 21.0
+  model.mom_tilt:
+    type: float
+    low: 0.0
+    high: 0.25
+    step: 0.025
+  model.shrink_floor:
+    type: float
+    low: 0.10
+    high: 0.60
+    step: 0.05
+  backtest_engine.stability_weight:
+    type: float
+    low: 0.0
+    high: 1.0
+    step: 0.10
+  backtest_engine.degradation_penalty:
+    type: float
+    low: 0.0
+    high: 0.75
+    step: 0.05
+  smart_signals.target_monthly_vol:
+    type: float
+    low: 0.02
+    high: 0.06
+    step: 0.005
+  smart_signals.min_overlay:
+    type: float
+    low: 0.10
+    high: 0.60
+    step: 0.05
+  smart_signals.kelly_cap:
+    type: float
+    low: 0.10
+    high: 0.50
+    step: 0.05
+  smart_signals.cvar_target_multiplier:
+    type: float
+    low: 0.70
+    high: 1.30
+    step: 0.05
+
+selection:
+  # Risk control is not allowed to choose a trivial near-zero-return solution.
+  return_floor_quantile: 0.35
+  minimum_annual_return: 0.05
+  minimum_dsr: 0.50
+  top_fraction: 0.20
+  parameter_bins: 6
+  return_weights:
+    annualized_return: 1.00
+    sharpe_ratio: 0.15
+    sortino_ratio: 0.10
+    dsr: 0.15
+  risk_weights:
+    annualized_return: 0.35
+    sharpe_ratio: 0.25
+    sortino_ratio: 0.20
+    psr: 0.10
+    dsr: 0.25
+    annualized_volatility: 0.25
+    abs_max_drawdown: 0.35
+    abs_cvar_95: 0.25
+    downside_deviation: 0.15
+    turnover: 0.05

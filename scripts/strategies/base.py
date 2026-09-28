@@ -44,7 +44,7 @@ class BaseStrategy:
         
         # self.weights = np.where(self.weights <= self.min_weight, 0, self.weights) # constraint for min_weight - if weight < min_weight => weight = 0
         # self.weights = np.where(self.weights >= self.max_weight, self.max_weight, self.weights)
-        
+       
         # 2 method - updated + complicated
         self.weights = normalize_long_only(
             self.weights,

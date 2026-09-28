@@ -9,6 +9,8 @@ import pandas as pd
 from typing import Any, Union, Literal
 from beartype import beartype
 
+from scripts.executions.accounting import partial_execute, gross_turnover, proportional_transaction_cost
+
 class BaseExecution():
     def __init__(
         self,
@@ -26,26 +28,29 @@ class BaseExecution():
         self.w_target = w_target.copy()
         self.w_current = w_current.copy()
         self.future_returns = future_returns
-        
+        self.future_returns_is_full_state = False
         if isinstance(self.future_returns, pd.DataFrame):
+            # run.py passes a full-universe frame in final-policy mode.  Preserve the
+            # dimensionality flag before converting to ndarray so holdings that have just
+            # left the feasible set still earn their realised return until liquidated.
+            self.future_returns_is_full_state = self.future_returns.shape[1] == len(self.w_current)
             self.future_returns = self.future_returns.values
-            
+
         self.future_returns = np.nan_to_num(self.future_returns, nan=0.0, posinf=0.0, neginf=0.0)
         
         self.current_balance = current_balance
         self.alpha = alpha
         self.type = self.config.get("return_type", "log-returns")
         self.is_past = self.config.get("is_past", False)
-        self.c_bps = float(self.config.get("c_bps", 1e-4))
+        self.c_bps = float(self.config.get("c_bps", 1e-3))  # default 10 bp per gross traded unit
         
         
     @beartype
     def calculate_exec_weights_turnover_transaction_costs(self, alpha: float) -> tuple[float, float, pd.Series]:
-        alpha = float(np.clip(alpha, 0.0, 1.0))
-        w_exec = self.w_current + alpha * (self.w_target - self.w_current)
-        turnover = float(abs(w_exec - self.w_current).sum())
-        cost = float(self.c_bps * turnover)
-        return float(turnover), cost, w_exec
+        w_exec = partial_execute(self.w_current, self.w_target, alpha)
+        turnover = gross_turnover(self.w_current, w_exec)
+        cost = proportional_transaction_cost(self.w_current, w_exec, self.c_bps)
+        return float(turnover), float(cost), w_exec
         
     
     @beartype
@@ -75,10 +80,14 @@ class BaseExecution():
             
         _, cost, w_exec = self.calculate_exec_weights_turnover_transaction_costs(alpha)
         
-        if self.is_past:
-            pnl = self.calculate_pnl(w_exec[self.mask], cost)   # for run.py
+        if self.is_past and not self.future_returns_is_full_state:
+            # Legacy/diagnostic path: return frame contains only currently eligible names.
+            pnl = self.calculate_pnl(w_exec[self.mask], cost)
         else:
-            pnl = self.calculate_pnl(w_exec, cost)            # for strategy_run.py + new_run2.py
+            # Final publication path: return frame is aligned to the full portfolio state.
+            # This books returns on partially liquidated holdings even after they leave the
+            # current feasible set.
+            pnl = self.calculate_pnl(w_exec, cost)
         
         new_balance, return_value = self.calculate_portfolio_value_return_value(pnl)
         return new_balance, pnl, cost, return_value
@@ -95,5 +104,5 @@ class BaseExecution():
         results = np.vstack((results, self.execution_process(is_dynamic_alpha=True)))
         
         index = np.argsort(results[:, -1])[::-1][0]
-        print(f"execution grid: alpha={alphas[index]}, result={results[index]}")
+        print(f"IN-SAMPLE execution grid: alpha={alphas[index]}, result={results[index]}. IN-SAMPLE alpha grid-search best")
         return tuple(results[index])

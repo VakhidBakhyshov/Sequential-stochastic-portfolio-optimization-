@@ -44,7 +44,10 @@ class BacktestEngineConfig:
     min_history_months: int = 12
     refit_on_full_history: bool = True
     include_hold_current: bool = True
+    include_optimizers: bool = True
     include_strategies: bool = False
+    stability_weight: float = 0.50
+    degradation_penalty: float = 0.25
     alpha_grid: tuple[float, ...] = (1.0, 0.75, 0.50, 0.25)
     rank_penalty_turnover: float = 0.0  # optional stability penalty in score
 
@@ -63,10 +66,12 @@ class CandidateResult:
     validation_sharpe: float
     validation_volatility: float
     validation_score: float
+    validation_n_obs: int = 0
     test_total_return: float = np.nan
     test_sharpe: float = np.nan
     test_volatility: float = np.nan
     test_score: float = np.nan
+    test_n_obs: int = 0
 
     def to_record(self) -> dict[str, Any]:
         d = asdict(self)
@@ -82,6 +87,7 @@ class SelectionResult:
     test_table: pd.DataFrame
     split_info: dict[str, Any]
     selected_target_weights_full: Optional[pd.Series] = None
+    selected_optimizer_diagnostics: Optional[dict[str, Any]] = None
 
 
 def flatten_config(section: Any) -> dict[str, Any]:
@@ -171,9 +177,9 @@ def portfolio_path_returns(
         raise ValueError("No common assets between returns columns and weights index.")
 
     r_simple = simple_returns_from_frame(returns[common].fillna(0.0), return_type=return_type)
-    w = weights.reindex(common).fillna(0.0).astype(float)
-    w = normalize_weights(w)
-
+    w = weights.reindex(common).fillna(0.0).astype(float).clip(lower=0.0)
+    # Preserve the affine executed state.  Re-normalizing here would convert partial
+    # execution back into a fully invested portfolio and invalidate turnover/cash logic.
     port = pd.Series(r_simple.values @ w.values, index=returns.index, name="portfolio_return")
     if len(port) > 0 and transaction_cost != 0.0:
         port.iloc[0] -= float(transaction_cost)
@@ -190,7 +196,7 @@ def performance_stats(
     """Basic performance metrics for a candidate path."""
     r = path_returns.replace([np.inf, -np.inf], np.nan).dropna().astype(float)
     if r.empty:
-        return {"total_return": -np.inf, "sharpe": -np.inf, "volatility": np.inf, "score": -np.inf}
+        return {"total_return": -np.inf, "sharpe": -np.inf, "volatility": np.inf, "score": -np.inf, "n_obs": 0}
 
     total_return = float((1.0 + r).prod() - 1.0)
     vol = float(r.std(ddof=1) * np.sqrt(periods_per_year)) if len(r) > 1 else 0.0
@@ -204,6 +210,7 @@ def performance_stats(
         "sharpe": float(sharpe_for_score),
         "volatility": vol,
         "score": score,
+        "n_obs": int(len(r)),
     }
 
 
@@ -260,6 +267,24 @@ def split_train_validation_test_by_months(
     return train, validation, test, split_info
 
 
+
+
+_RUNTIME_ONLY_PARAM_KEYS = {"scenario_paths"}
+
+
+def _audit_safe_params(params: dict[str, Any]) -> dict[str, Any]:
+    """Return candidate parameters that are safe to persist in research ledgers.
+
+    ``scenario_paths`` is a large runtime tensor injected only so path-dependent
+    optimizers (CDaR) can solve the current candidate.  It is regenerated from the
+    causal training/refit prefix and is *not* a hyperparameter.  Persisting it in
+    CandidateResult.params duplicates tens/hundreds of MB per rebalance, makes the
+    recipe id depend on random scenario draws, and can trigger an OS-level SIGKILL
+    during end-of-run validation when trial_audit.csv is read back.
+    """
+    return {k: v for k, v in dict(params).items() if k not in _RUNTIME_ONLY_PARAM_KEYS}
+
+
 class PortfolioWalkForwardBacktestEngine:
     """
     Candidate selector for your monthly ETF framework.
@@ -294,6 +319,8 @@ class PortfolioWalkForwardBacktestEngine:
         self.strategy_base_config = strategy_base_config or {}
         self.optimizer_param_grid = optimizer_param_grid or {}
         self.strategy_param_grid = strategy_param_grid or {}
+        self._attempt_records: list[dict[str, Any]] = []
+        self._last_scenario_paths: np.ndarray | None = None
 
     def _predict_returns(
         self,
@@ -305,6 +332,7 @@ class PortfolioWalkForwardBacktestEngine:
         fallback_pred_returns: Optional[np.ndarray] = None,
     ) -> np.ndarray:
         """Generate model scenarios without using validation/test returns as model inputs."""
+        self._last_scenario_paths = None
         if self.model_class is None:
             if fallback_pred_returns is not None:
                 return np.asarray(fallback_pred_returns, dtype=float)
@@ -318,7 +346,15 @@ class PortfolioWalkForwardBacktestEngine:
             ewma[etfs_list].copy(),
             eval_template_returns[etfs_list].fillna(0.0).values,
         )
-        return np.asarray(model.prediction(), dtype=float)
+        pred = np.asarray(model.prediction(), dtype=float)
+        # Preserve ordered predictive paths for path-dependent optimizers.  This
+        # remains strictly inside the current train/refit prefix and therefore
+        # does not leak validation/test/holdout observations into CDaR.
+        try:
+            self._last_scenario_paths = np.asarray(model.get_scenario_paths(), dtype=float)
+        except Exception:
+            self._last_scenario_paths = None
+        return pred
 
     def _candidate_weights_from_optimizer(
         self,
@@ -338,19 +374,39 @@ class PortfolioWalkForwardBacktestEngine:
         for cfg in grid_configs:
             opt_type = cfg.get("type", optimizer_type_default)
             if opt_type not in self.optimizer_registry:
+                self._attempt_records.append({
+                    "source": "optimizer", "method": str(opt_type), "params": dict(cfg),
+                    "status": "structurally_excluded", "error": "optimizer type not registered",
+                    "counts_as_trial": False,
+                })
                 continue
 
             opt_cfg = dict(cfg)
             opt_cfg.setdefault("is_all_methods", False)
+            if str(opt_type).lower() == "cdar":
+                if self._last_scenario_paths is None:
+                    self._attempt_records.append({
+                        "source": "optimizer", "method": str(opt_cfg.get("task_type", "return_cdar_constraint")),
+                        "params": _audit_safe_params(opt_cfg), "status": "failed",
+                        "error": "CDaR requires ordered scenario paths from the model", "counts_as_trial": True,
+                    })
+                    continue
+                opt_cfg["scenario_paths"] = np.asarray(self._last_scenario_paths, dtype=float)
 
             compatible_tasks = {
-                "bayessian": {"cvar_returns", "mean_cvar_sharpe", "expected_returns", "deviation_from_target", "bayesian_sharpe"},
+                "bayessian": {"cvar_returns", "return_cvar_constraint", "mean_cvar_sharpe", "expected_returns", "deviation_from_target", "bayesian_sharpe"},
+                "cdar": {"return_cdar_constraint"},
                 "markowitz": {"max_sharpe", "min_variance", "max_return_min_vol", "max_diversification", "max_decorrelation"},
                 "black_litterman": {"black_litterman"},
             }
             task_type = str(opt_cfg.get("task_type", ""))
             allowed = compatible_tasks.get(str(opt_type))
             if allowed is not None and task_type and task_type not in allowed:
+                self._attempt_records.append({
+                    "source": "optimizer", "method": task_type or str(opt_type), "params": _audit_safe_params(opt_cfg),
+                    "status": "structurally_excluded", "error": "incompatible optimizer/task combination",
+                    "counts_as_trial": False,
+                })
                 continue
 
             opt_cls = self.optimizer_registry[opt_type]
@@ -367,7 +423,14 @@ class PortfolioWalkForwardBacktestEngine:
                 )
                 _, weights_list = opt.get_results()
             except Exception as exc:
-                # Do not stop the whole walk-forward run because one parameter set failed.
+                # Failed parameter sets influenced the search and therefore belong in
+                # the research ledger even though they have no Sharpe observation.
+                for alpha in self.cfg.alpha_grid:
+                    self._attempt_records.append({
+                        "source": "optimizer", "method": task_type or str(opt_type), "params": _audit_safe_params(opt_cfg),
+                        "alpha": float(alpha), "status": "failed", "error": str(exc),
+                        "counts_as_trial": True,
+                    })
                 print(f"[BacktestEngine] Skipping optimizer={opt_type}, cfg={opt_cfg}, error={exc}")
                 continue
 
@@ -389,7 +452,7 @@ class PortfolioWalkForwardBacktestEngine:
                     min_weight=float(opt_cfg.get("min_weight", 0.0)),
                     max_weight=opt_cfg.get("max_weight"),
                 )
-                out.append(("optimizer", method, opt_cfg, w))
+                out.append(("optimizer", method, _audit_safe_params(opt_cfg), w))
         return out
 
     def _candidate_weights_from_strategy(
@@ -412,6 +475,11 @@ class PortfolioWalkForwardBacktestEngine:
         for cfg in grid_configs:
             strat_type = cfg.get("type", strategy_type_default)
             if strat_type not in self.strategy_registry:
+                self._attempt_records.append({
+                    "source": "strategy", "method": str(strat_type), "params": dict(cfg),
+                    "status": "structurally_excluded", "error": "strategy type not registered",
+                    "counts_as_trial": False,
+                })
                 continue
 
             strat_cls = self.strategy_registry[strat_type]
@@ -428,6 +496,12 @@ class PortfolioWalkForwardBacktestEngine:
                 )
                 w_arr = strat.get_weights()
             except Exception as exc:
+                for alpha in self.cfg.alpha_grid:
+                    self._attempt_records.append({
+                        "source": "strategy", "method": str(strat_type), "params": dict(cfg),
+                        "alpha": float(alpha), "status": "failed", "error": str(exc),
+                        "counts_as_trial": True,
+                    })
                 print(f"[BacktestEngine] Skipping strategy={strat_type}, cfg={cfg}, error={exc}")
                 continue
 
@@ -452,7 +526,10 @@ class PortfolioWalkForwardBacktestEngine:
         prev = previous_weights.reindex(target_weights.index).fillna(0.0).astype(float)
         target = normalize_weights(target_weights)
         executed = prev + float(alpha) * (target - prev)
-        executed = normalize_weights(executed)
+        # Do not renormalize after partial execution: the affine state transition is
+        # the economic object being tested.  Renormalization would silently erase
+        # cash/residual exposure created by partial liquidation or feasible-set exits.
+        executed = executed.clip(lower=0.0)
         turnover = float(np.abs(executed - prev).sum())
         cost = float(self.cfg.c_bps) * turnover
 
@@ -482,10 +559,12 @@ class PortfolioWalkForwardBacktestEngine:
             validation_sharpe=stats["sharpe"] if prefix == "validation" else np.nan,
             validation_volatility=stats["volatility"] if prefix == "validation" else np.nan,
             validation_score=stats["score"] if prefix == "validation" else np.nan,
+            validation_n_obs=int(stats["n_obs"]) if prefix == "validation" else 0,
             test_total_return=stats["total_return"] if prefix == "test" else np.nan,
             test_sharpe=stats["sharpe"] if prefix == "test" else np.nan,
             test_volatility=stats["volatility"] if prefix == "test" else np.nan,
             test_score=stats["score"] if prefix == "test" else np.nan,
+            test_n_obs=int(stats["n_obs"]) if prefix == "test" else 0,
         )
         return result, path
 
@@ -504,6 +583,7 @@ class PortfolioWalkForwardBacktestEngine:
         validation_returns: pd.DataFrame,
         market_cap_train: Optional[pd.DataFrame | np.ndarray],
         previous_weights: pd.Series,
+        execution_previous_weights: Optional[pd.Series],
         fallback_pred_returns: Optional[np.ndarray],
     ) -> list[tuple[str, str, dict[str, Any], pd.Series]]:
         pred_train = self._predict_returns(
@@ -515,27 +595,30 @@ class PortfolioWalkForwardBacktestEngine:
         )
 
         candidates: list[tuple[str, str, dict[str, Any], pd.Series]] = []
-        candidates.extend(
-            self._candidate_weights_from_optimizer(
-                etfs_list=etfs_list,
-                train_returns=train_returns,
-                pred_returns=pred_train,
-                market_cap_train=market_cap_train,
-                previous_weights=previous_weights,
+        if self.cfg.include_optimizers:
+            candidates.extend(
+                self._candidate_weights_from_optimizer(
+                    etfs_list=etfs_list,
+                    train_returns=train_returns,
+                    pred_returns=pred_train,
+                    market_cap_train=market_cap_train,
+                    previous_weights=previous_weights,
+                )
             )
-        )
-        candidates.extend(
-            self._candidate_weights_from_strategy(
-                etfs_list=etfs_list,
-                train_returns=train_returns,
-                pred_returns=pred_train,
-                market_cap_train=market_cap_train,
-                previous_weights=previous_weights,
+        if self.cfg.include_strategies:
+            candidates.extend(
+                self._candidate_weights_from_strategy(
+                    etfs_list=etfs_list,
+                    train_returns=train_returns,
+                    pred_returns=pred_train,
+                    market_cap_train=market_cap_train,
+                    previous_weights=previous_weights,
+                )
             )
-        )
 
         if self.cfg.include_hold_current:
-            hold = normalize_weights(previous_weights.reindex(etfs_list).fillna(0.0))
+            hold_source = execution_previous_weights if execution_previous_weights is not None else previous_weights
+            hold = normalize_weights(hold_source.reindex(etfs_list).fillna(0.0))
             candidates.append(("hold_current", "hold_current", {"type": "hold_current"}, hold))
 
         if not candidates:
@@ -551,10 +634,10 @@ class PortfolioWalkForwardBacktestEngine:
         full_ewma_returns: Optional[pd.DataFrame],
         market_cap_full: Optional[pd.DataFrame | np.ndarray],
         previous_weights: pd.Series,
-    ) -> pd.Series:
+    ) -> tuple[pd.Series, dict[str, Any]]:
         """After hyperparameter selection, refit the winning recipe on all data known at rebalance date."""
         if not self.cfg.refit_on_full_history or selected.source == "hold_current":
-            return selected.target_weights
+            return selected.target_weights, {}
 
         pred_full = self._predict_returns(
             etfs_list=etfs_list,
@@ -566,9 +649,13 @@ class PortfolioWalkForwardBacktestEngine:
         if selected.source == "optimizer":
             cfg = dict(selected.params)
             opt_type = cfg.get("type")
+            if str(opt_type).lower() == "cdar":
+                if self._last_scenario_paths is None:
+                    return selected.target_weights, {"lp_success": False, "risk_measure": "CDaR", "message": "missing ordered scenario paths during refit"}
+                cfg["scenario_paths"] = np.asarray(self._last_scenario_paths, dtype=float)
             opt_cls = self.optimizer_registry.get(opt_type)
             if opt_cls is None:
-                return selected.target_weights
+                return selected.target_weights, {}
             try:
                 opt = opt_cls(
                     cfg,
@@ -579,19 +666,21 @@ class PortfolioWalkForwardBacktestEngine:
                 )
                 _, weights_list = opt.get_results()
                 if len(weights_list) == 0:
-                    return selected.target_weights
+                    return selected.target_weights, {}
                 w = pd.Series(np.asarray(weights_list[0], dtype=float), index=etfs_list)
-                return normalize_weights(w, min_weight=float(cfg.get("min_weight", 0.0)), max_weight=cfg.get("max_weight"))
+                weights = normalize_weights(w, min_weight=float(cfg.get("min_weight", 0.0)), max_weight=cfg.get("max_weight"))
+                diagnostics = dict(getattr(opt, "last_lp_diagnostics", {}) or {})
+                return weights, diagnostics
             except Exception as exc:
                 print(f"[BacktestEngine] Refit failed for optimizer recipe; using selected weights. error={exc}")
-                return selected.target_weights
+                return selected.target_weights, {}
 
         if selected.source == "strategy":
             cfg = dict(selected.params)
             strat_type = cfg.get("type", selected.method)
             strat_cls = self.strategy_registry.get(strat_type)
             if strat_cls is None:
-                return selected.target_weights
+                return selected.target_weights, {}
             try:
                 strat = strat_cls(
                     cfg,
@@ -601,19 +690,21 @@ class PortfolioWalkForwardBacktestEngine:
                     previous_weights.reindex(etfs_list).fillna(0.0).values,
                 )
                 w = pd.Series(np.asarray(strat.get_weights(), dtype=float), index=etfs_list)
-                return normalize_weights(w, min_weight=float(cfg.get("min_weight", 0.0)), max_weight=cfg.get("max_weight"))
+                weights = normalize_weights(w, min_weight=float(cfg.get("min_weight", 0.0)), max_weight=cfg.get("max_weight"))
+                return weights, {}
             except Exception as exc:
                 print(f"[BacktestEngine] Refit failed for strategy recipe; using selected weights. error={exc}")
-                return selected.target_weights
+                return selected.target_weights, {}
 
-        return selected.target_weights
+        return selected.target_weights, {}
 
     def select(
         self,
         *,
         etfs_list: list[str],
         historical_returns: pd.DataFrame,
-        w_previous: pd.Series,
+        w_optimizer_reference: pd.Series,
+        w_execution_state: Optional[pd.Series] = None,
         historical_ewma_returns: Optional[pd.DataFrame] = None,
         market_cap_history: Optional[pd.DataFrame | np.ndarray] = None,
         fallback_pred_returns: Optional[np.ndarray] = None,
@@ -632,6 +723,20 @@ class PortfolioWalkForwardBacktestEngine:
         if train.empty or validation.empty or internal_test.empty:
             raise ValueError(f"Bad split: train={train.shape}, validation={validation.shape}, test={internal_test.shape}")
 
+        split_info.update({
+            "history_start": str(full_returns.index.min()),
+            "history_end": str(full_returns.index.max()),
+            "train_start_timestamp": str(train.index.min()),
+            "train_end": str(train.index.max()),
+            "validation_start": str(validation.index.min()),
+            "validation_end": str(validation.index.max()),
+            "internal_test_start": str(internal_test.index.min()),
+            "internal_test_end": str(internal_test.index.max()),
+            "train_n_obs": int(len(train)),
+            "validation_n_obs": int(len(validation)),
+            "internal_test_n_obs": int(len(internal_test)),
+        })
+
         if full_ewma is not None:
             train_ewma = full_ewma.reindex(train.index).dropna(how="all")
             full_ewma_for_refit = full_ewma
@@ -644,13 +749,28 @@ class PortfolioWalkForwardBacktestEngine:
         if market_cap_history is not None:
             if isinstance(market_cap_history, pd.DataFrame):
                 mc = as_return_frame(market_cap_history)
-                market_cap_train = mc.reindex(train.index)[etfs_list].fillna(0.0)
-                market_cap_full = mc.reindex(full_returns.index)[etfs_list].fillna(0.0)
+                # ``as_return_frame`` intentionally drops all-NaN columns.  A selected
+                # asset (for example BOND) can therefore disappear from the market-cap
+                # frame even though it is valid in the return universe.  Reindex both
+                # axes in one operation so missing market-cap observations become zero
+                # rather than raising KeyError before candidate construction.
+                market_cap_train = mc.reindex(index=train.index, columns=etfs_list).fillna(0.0)
+                market_cap_full = mc.reindex(index=full_returns.index, columns=etfs_list).fillna(0.0)
             else:
                 market_cap_train = np.asarray(market_cap_history, dtype=float)
                 market_cap_full = market_cap_train
 
-        prev = normalize_weights(w_previous.reindex(etfs_list).fillna(0.0))
+        # Policy C deliberately separates the optimizer's regularisation anchor from
+        # the economic holdings state.  Candidate recipes/refits see the previous target
+        # anchor; partial-execution evaluation starts from holdings actually executed.
+        optimizer_prev = normalize_weights(w_optimizer_reference.reindex(etfs_list).fillna(0.0))
+        if w_execution_state is None:
+            execution_prev = optimizer_prev.copy()
+        else:
+            execution_prev = (
+                w_execution_state.reindex(etfs_list).fillna(0.0).astype(float).clip(lower=0.0)
+            )
+        self._attempt_records = []
 
         raw_candidates = self._build_candidates(
             etfs_list=etfs_list,
@@ -658,7 +778,8 @@ class PortfolioWalkForwardBacktestEngine:
             train_ewma_returns=train_ewma,
             validation_returns=validation,
             market_cap_train=market_cap_train,
-            previous_weights=prev,
+            previous_weights=optimizer_prev,
+            execution_previous_weights=execution_prev,
             fallback_pred_returns=fallback_pred_returns,
         )
 
@@ -672,7 +793,7 @@ class PortfolioWalkForwardBacktestEngine:
                     method=method,
                     params=params,
                     target_weights=target_w,
-                    previous_weights=prev,
+                    previous_weights=execution_prev,
                     eval_returns=validation,
                     alpha=float(alpha),
                     prefix="validation",
@@ -693,7 +814,7 @@ class PortfolioWalkForwardBacktestEngine:
                 method=r.method,
                 params=r.params,
                 target_weights=r.target_weights,
-                previous_weights=prev,
+                previous_weights=execution_prev,
                 eval_returns=internal_test,
                 alpha=r.alpha,
                 prefix="test",
@@ -703,23 +824,52 @@ class PortfolioWalkForwardBacktestEngine:
             test_r.validation_sharpe = r.validation_sharpe
             test_r.validation_volatility = r.validation_volatility
             test_r.validation_score = r.validation_score
+            test_r.validation_n_obs = r.validation_n_obs
             test_results.append(test_r)
 
         test_table = pd.DataFrame([r.to_record() for r in test_results])
         test_rank_col = self._rank_column("test")
-        test_table = test_table.sort_values(test_rank_col, ascending=False).reset_index(drop=True)
+        val_rank_col = self._rank_column("validation")
+        if test_table.empty:
+            raise ValueError("No candidates survived the internal test stage.")
+
+        # Stable recipe selection: reward performance in both validation and internal
+        # test, and penalize sharp degradation. The true next month remains untouched OOS.
+        sw = float(np.clip(self.cfg.stability_weight, 0.0, 1.0))
+        dp = max(0.0, float(self.cfg.degradation_penalty))
+        test_table["robust_selection_score"] = (
+            (1.0 - sw) * pd.to_numeric(test_table[val_rank_col], errors="coerce")
+            + sw * pd.to_numeric(test_table[test_rank_col], errors="coerce")
+            - dp * (
+                pd.to_numeric(test_table[test_rank_col], errors="coerce")
+                - pd.to_numeric(test_table[val_rank_col], errors="coerce")
+            ).abs()
+        )
+        test_table = test_table.sort_values(
+            ["robust_selection_score", test_rank_col, val_rank_col],
+            ascending=False,
+        ).reset_index(drop=True)
 
         selected_id = test_table.iloc[0]["candidate_id"]
         selected = next(r for r in test_results if r.candidate_id == selected_id)
+        split_info["robust_selection_score"] = float(test_table.iloc[0]["robust_selection_score"])
+        split_info["candidate_attempt_records"] = list(self._attempt_records)
+        split_info["failed_candidate_attempts"] = int(sum(
+            bool(r.get("counts_as_trial")) and r.get("status") == "failed" for r in self._attempt_records
+        ))
 
-        selected_full = self._refit_selected_recipe_on_full_history(
+        selected_full, selected_diagnostics = self._refit_selected_recipe_on_full_history(
             selected=selected,
             etfs_list=etfs_list,
             full_returns=full_returns,
             full_ewma_returns=full_ewma_for_refit,
             market_cap_full=market_cap_full,
-            previous_weights=prev,
+            previous_weights=optimizer_prev,
         )
+
+        split_info["state_reference_policy"] = "policy_C_split"
+        split_info["optimizer_reference"] = "previous_target"
+        split_info["execution_start"] = "previous_executed_holdings"
 
         return SelectionResult(
             selected=selected,
@@ -727,6 +877,7 @@ class PortfolioWalkForwardBacktestEngine:
             test_table=test_table,
             split_info=split_info,
             selected_target_weights_full=selected_full,
+            selected_optimizer_diagnostics=selected_diagnostics,
         )
 
 
@@ -736,10 +887,22 @@ def build_full_weight_series(
     mask: pd.Series | np.ndarray,
     etfs_list: list[str],
     selected_asset_weights: pd.Series,
+    preserve_total_exposure: bool = False,
 ) -> pd.Series:
-    """Convert ticker-indexed selected weights back into your full portfolios_date['weights'] Series."""
+    """Map ticker-indexed weights back to the full universe.
+
+    ``preserve_total_exposure=True`` is required for cash overlays. The original
+    implementation always renormalized to one, silently removing every exposure
+    reduction produced by the smart-signal layer.
+    """
     w_target = pd.Series(0.0, index=portfolios_date.index, dtype=float)
     selected = selected_asset_weights.reindex(etfs_list).fillna(0.0).astype(float)
-    selected = normalize_weights(selected)
+    selected = selected.clip(lower=0.0)
+    total = float(selected.sum())
+    if preserve_total_exposure:
+        if total > 1.0 + 1e-9:
+            selected = selected / total
+    else:
+        selected = normalize_weights(selected)
     w_target.loc[mask] = selected.values
     return w_target

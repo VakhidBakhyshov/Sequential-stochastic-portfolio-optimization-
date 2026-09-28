@@ -26,21 +26,57 @@ from scripts.calculations.portfolio_utils import sigmoid_np
 
 from scripts.models.registry import *
 from scripts.optimizers.registry import *
-from scripts.optimizers import base as _opt_base   # LP audit diagnostics
 from scripts.executions.registry import *
 
 from scripts.results.results import BaseResults
 from scripts.optimizers.dynamic_params import DynamicParameterController
+from scripts.executions.accounting import (
+    partial_execute,
+    gross_turnover,
+    proportional_transaction_cost,
+)
 
 from scripts.backtesting.engine_integration import results_by_nested_backtest_engine
+from scripts.runs.common_postprocess import (
+    candidate_trial_records, save_candidate_trials, save_selection_audit,
+    save_risk_matrices, save_run_metadata, generate_research_validation_safely,
+    generate_metric_artifacts_safely, generate_signal_research_safely, generate_interactive_report_safely,
+    run_postprocessing,
+)
 
+
+POLICY_C_ID = "policy_C_split"
+POLICY_C_DESCRIPTION = (
+    "previous target is the optimizer/turnover anchor; previous executed holdings are "
+    "the economic state used for actual trading, realised returns and transaction costs"
+)
 
 PARAMS = ['balance', 'model', 'optimizer', 'execution']
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Monthly ETF rebalancing")
-    parser.add_argument("--config-path", "-c", type=str, default="bayessian_cvar.yaml", help="filname for config yaml")
+    parser.add_argument("--config-path", "-c", type=str, default="bayessian_cvar.yaml", help="filename for config yaml")
+    parser.add_argument(
+        "--postprocess-only",
+        action="store_true",
+        help="finish validation/metrics/signal research/report from an existing results folder without rerunning optimization",
+    )
+    parser.add_argument(
+        "--result-folder",
+        type=str,
+        default=None,
+        help="optional results subfolder override; defaults to config output_folder",
+    )
+    parser.add_argument(
+        "--skip-postprocess",
+        action="store_true",
+        help=(
+            "run the numerical walk-forward and save core Policy-C artifacts, but skip "
+            "the heavy validation/report post-processing. Useful when FINAL_results.ipynb "
+            "will perform the downstream analysis itself."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -84,6 +120,62 @@ def _make_market_cap_frame(price_df: pd.DataFrame, volume_df: pd.DataFrame) -> p
     market_cap = price_num[common] * volume_num[common]
     market_cap.insert(0, "Date", dates)
     return market_cap
+
+
+def _get_full_state_execution_returns(
+    returns_all: pd.DataFrame,
+    full_state_keys: list[str],
+    start_time: pd.Timestamp,
+    end_time: pd.Timestamp,
+    executed_state: pd.Series,
+) -> pd.DataFrame:
+    """Return holding-period returns in exactly the full portfolio-state order.
+
+    Some eligibility workbooks contain dormant symbols that are not columns in the return
+    panel.  Those symbols are harmless when their economic holding is zero, but asking
+    pandas for every workbook symbol raises a KeyError before the backtest starts.  Policy C
+    only requires return data for names that are actually held.
+
+    Missing columns are therefore filled with zero *only* for zero-held dormant symbols.
+    If a symbol with a non-zero executed holding is absent from the return panel, fail loudly:
+    silently assigning a zero return to an actually held asset would be an accounting error.
+    """
+    keys = [str(k) for k in full_state_keys]
+    if len(keys) != len(set(keys)):
+        dup = pd.Series(keys)[pd.Series(keys).duplicated()].unique().tolist()
+        raise RuntimeError(f"Duplicate portfolio keys in full state: {dup[:10]}")
+
+    if len(executed_state) != len(keys):
+        raise RuntimeError(
+            f"Policy-C state/key length mismatch: holdings={len(executed_state)} keys={len(keys)}"
+        )
+
+    available_set = set(returns_all.columns)
+    available = [k for k in keys if k in available_set]
+    missing = [k for k in keys if k not in available_set]
+
+    if missing:
+        held = np.asarray(executed_state, dtype=float).reshape(-1)
+        held_missing = [
+            k for k, w in zip(keys, held)
+            if k in set(missing) and np.isfinite(w) and abs(float(w)) > 1e-12
+        ]
+        if held_missing:
+            raise RuntimeError(
+                "Policy C cannot book returns for actually held symbols missing from "
+                f"new_etf_returns.csv: {held_missing[:20]}"
+            )
+
+    month = get_first_day_month_returns(returns_all, available, start_time, end_time)
+    date_values = pd.to_datetime(month["Date"], errors="coerce")
+    out = pd.DataFrame({"Date": date_values})
+    for k in keys:
+        if k in month.columns:
+            out[k] = pd.to_numeric(month[k], errors="coerce").fillna(0.0).to_numpy()
+        else:
+            # Safe only because non-zero missing holdings were rejected above.
+            out[k] = 0.0
+    return out
     
     
 @beartype
@@ -93,7 +185,7 @@ def compare_current_with_previous_weights(
     mask: pd.Series,
     historical_returns: np.ndarray,
     pred_returns: np.ndarray,
-    w_previous: pd.Series,
+    w_execution_state: pd.Series,
     initial_exp_sum: float,
     current_balance: float,
     best_balance: float,
@@ -114,8 +206,8 @@ def compare_current_with_previous_weights(
             
     results = exec_class(
         exec_config,
-        w_previous,
-        w_previous,
+        w_execution_state,
+        w_execution_state,
         mask,
         past_month_returns,
         current_balance,
@@ -140,8 +232,8 @@ def compare_current_with_previous_weights(
     
     results = exec_class(
         exec_config,
-        w_previous,
-        w_previous,
+        w_execution_state,
+        w_execution_state,
         mask,
         past_month_returns,
         current_balance,
@@ -157,7 +249,7 @@ def compare_current_with_previous_weights(
         best_exp_sum = best_exp_sum
         best_alpha = float(alphas[index])
         best_results = info[index]
-        best_weights = w_previous
+        best_weights = w_execution_state
         best_balance = info[index][1]
         
     return best_exp_sum, best_alpha, best_results, best_weights
@@ -174,7 +266,8 @@ def results_by_fitting_model_alpha(
     historical_returns: np.ndarray,
     pred_returns: np.ndarray,
     future_returns: pd.DataFrame,
-    w_previous: pd.Series,
+    w_optimizer_reference: pd.Series,
+    w_execution_state: pd.Series,
     initial_exp_sum: float,
     current_balance: float
 ) -> tuple[float, float, np.ndarray, pd.Series]:
@@ -191,7 +284,7 @@ def results_by_fitting_model_alpha(
         market_cap,
         historical_returns,
         pred_returns,
-        w_previous[mask].values
+        w_optimizer_reference[mask].values
     ).get_results()
     
     if len(method_weights) == 0:
@@ -218,7 +311,7 @@ def results_by_fitting_model_alpha(
         
         exec_processing_class = exec_class(
             exec_config,
-            w_previous,
+            w_execution_state,
             w_target,
             mask,
             past_month_returns,
@@ -245,7 +338,7 @@ def results_by_fitting_model_alpha(
             mask,
             historical_returns,
             pred_returns,
-            w_previous,
+            w_execution_state,
             initial_exp_sum,
             current_balance,
             best_balance,
@@ -261,7 +354,7 @@ def results_by_fitting_model_alpha(
     
     results = exec_class(
         exec_config,
-        w_previous,
+        w_execution_state,
         w_target,
         mask,
         future_returns,
@@ -303,12 +396,17 @@ def model_computation(
     dynamic_controller = DynamicParameterController.from_optimizer_config(optimizer_config)
     dynamic_history: list[dict[str, Any]] = []
     selection_audit: list[dict[str, Any]] = []
-    forecast_risk: list[dict[str, Any]] = []   # forward posterior-predictive CVaR/vol of the chosen book
+    trial_audit: list[dict[str, Any]] = []
+    forecast_risk: list[dict[str, Any]] = []   # causal forward posterior-predictive risk
+    risk_matrices: list[dict[str, Any]] = []
+    execution_audit: list[dict[str, Any]] = []
     
     logger.info(
-        f"Run start: portfolio={portfolio_type}"
-        f"model={model_config['type']}, optimizer={optimizer_config['type']}, execution={exec_config['type']}"
+        f"Run start: portfolio={portfolio_type}, "
+        f"model={model_config['type']}, optimizer={optimizer_config['type']}, execution={exec_config['type']}, "
+        f"execution_policy={POLICY_C_ID}"
     )
+    logger.info(f"{POLICY_C_ID}: {POLICY_C_DESCRIPTION}")
     
     start_date = first_business_days.iloc[0] + timedelta(days=365 * lookback_years)
     initial_date = first_business_days[first_business_days <= start_date].iloc[-1]
@@ -336,7 +434,11 @@ def model_computation(
     else:
         raise ValueError(f"Unknown initial weight type: {initial_weight_type}")
     
-    w_current = portfolios[date]["weights"]
+    # Policy C uses two different states by design:
+    #   * optimizer anchor = previous target (regularisation / turnover-reference state)
+    #   * economic state  = actually executed holdings (returns, trades and costs)
+    w_optimizer_anchor = portfolios[date]["weights"].copy()
+    w_executed_state = portfolios[date]["weights"].copy()
 
     alpha = 1.0
     exp_sum = 0.0
@@ -384,6 +486,17 @@ def model_computation(
         historical_ewma_returns = get_historical_returns(ewma_returns_all, etfs_list, day, startTime, window_type) 
         historical_market_cap = get_historical_returns(market_cap, etfs_list, day, startTime, window_type)
         future_returns = get_first_day_month_returns(returns_all, etfs_list, day, future_date).drop(columns=["Date"], errors="ignore")
+        # Economic PnL must include every holding actually carried into the month, even if
+        # a name has just left the current feasible set.  Build a full-state return frame
+        # in the exact portfolio-key order; the model still sees only current eligible names.
+        full_state_keys = portfolios[date]["Key"].tolist()
+        future_returns_execution = _get_full_state_execution_returns(
+            returns_all=returns_all,
+            full_state_keys=full_state_keys,
+            start_time=day,
+            end_time=future_date,
+            executed_state=w_executed_state,
+        ).drop(columns=["Date"], errors="ignore")
         month_market_cap = get_first_day_month_returns(market_cap, etfs_list, prev_date, day).drop(columns=["Date"], errors="ignore")
         
         if future_returns.empty or _safe_drop_date(historical_returns).empty:
@@ -410,10 +523,25 @@ def model_computation(
         )
         
         pred_returns = modelClass.prediction()
-        # pred_returns is now an (S x N) scenario fan; the forecast diagnostic expects rows
-        # aligned with the realised horizon, so slice to the horizon length to avoid an index error.
-        model_metrics = modelClass.evaluate_metrics(pred_returns[:modelClass.len_returns])
+        # Preserve the ordered path cube separately from YAML/runtime search parameters.
+        # CDaR needs (scenario, day, asset) paths; terminal-loss CVaR only needs the
+        # scenario fan.  Keeping the cube out of the parameter grid also prevents a
+        # large ndarray from contaminating trial IDs and the research ledger.
+        try:
+            current_scenario_paths = modelClass.get_scenario_paths()
+        except Exception:
+            current_scenario_paths = None
+        # Scenario-distribution diagnostics compare the posterior fan with the realised
+        # holding-period vector; scenario rows are not treated as an ordered time path.
+        model_metrics = modelClass.evaluate_metrics(pred_returns)
+        try:
+            snapshot = modelClass.get_risk_matrix_snapshot()
+            snapshot["date"] = date
+            risk_matrices.append(snapshot)
+        except Exception as exc:
+            logger.warning(f"Risk-matrix snapshot skipped on {date}: {exc}")
         
+        # # Initial variant
         # exp_sum, alpha, (new_balance, pnl, cost, return_value), w_target = results_by_fitting_model_alpha(
         #     config=config,
         #     optimizer_class=optimizer_class,
@@ -444,17 +572,42 @@ def model_computation(
                 historical_returns=historical_returns,
                 historical_ewma_returns=historical_ewma_returns,
                 pred_returns=pred_returns,
-                future_returns=future_returns,
-                w_previous=w_current,
+                future_returns=future_returns_execution,
+                w_optimizer_reference=w_optimizer_anchor,
+                w_execution_state=w_executed_state,
                 current_balance=current_balance,
+                scenario_paths=current_scenario_paths,
             )
             selection_info.update({"engine_used": True, **split_info})
             selection_info["validation_best"] = validation_table.head(1).to_dict(orient="records")
             selection_info["test_best"] = test_table.head(1).to_dict(orient="records")
+            trial_audit.extend(candidate_trial_records(
+                rebalance_date=date,
+                validation_table=validation_table,
+                test_table=test_table,
+                selected_candidate_id=split_info.get("selected_candidate_id"),
+                attempt_records=split_info.get("candidate_attempt_records"),
+            ))
         except Exception as exc:
-            logger.info(f"Direct solve on {date}: {exc}")
+            if bool(runtime_config.get("strict_nested_engine", False)):
+                # Publication mode must never silently mix nested-selection months with
+                # the legacy direct fallback.  A failed month is a failed run.
+                raise RuntimeError(f"Strict nested engine failed on {date}: {exc}") from exc
+            logger.warning(f"Nested engine fallback on {date}: {exc}")
+            fallback_config = copy.deepcopy(runtime_config)
+            try:
+                _fb_opt = _flatten_config(fallback_config["optimizer"])
+                if str(_fb_opt.get("type", "")).lower() == "cdar" or "cdar" in str(_fb_opt.get("task_type", "")).lower():
+                    if current_scenario_paths is None:
+                        raise RuntimeError("CDaR fallback requires ordered scenario paths from the Bayesian model")
+                    _fb_opt["scenario_paths"] = current_scenario_paths
+                    fallback_config["optimizer"] = _section_from_flat(_fb_opt)
+            except Exception as path_exc:
+                if str(_flatten_config(runtime_config["optimizer"]).get("type", "")).lower() == "cdar":
+                    raise
+                logger.warning(f"Fallback scenario-path preparation skipped on {date}: {path_exc}")
             exp_sum, alpha, (new_balance, pnl, cost, return_value), w_target = results_by_fitting_model_alpha(
-                config=runtime_config,
+                config=fallback_config,
                 optimizer_class=optimizer_class,
                 exec_class=exec_class,
                 portfolios_date=portfolios[date].copy(),
@@ -462,15 +615,16 @@ def model_computation(
                 market_cap=month_market_cap.values,
                 historical_returns=_safe_drop_date(historical_returns).values,
                 pred_returns=pred_returns,
-                future_returns=future_returns,
-                w_previous=w_current,
+                future_returns=future_returns_execution,
+                w_optimizer_reference=w_optimizer_anchor,
+                w_execution_state=w_executed_state,
                 initial_exp_sum=exp_sum,
                 current_balance=current_balance,
             )
             selection_info.update({"engine_used": False, "fallback_reason": str(exc), "selected_alpha": alpha})
         
         print(alpha, future_date, new_balance, pnl, cost, return_value)
-        # machine-readable progress line
+        # --- clean machine-readable progress line for the notebook (added for last_implementations) ---
         try:
             _n_held = int((np.asarray(w_target, dtype=float) > 1e-4).sum())
         except Exception:
@@ -481,16 +635,9 @@ def model_computation(
             _d = str(future_date)
         print(f"PROGRESS\t{_d}\t{len(etfs_list)}\t{_n_held}\t{float(return_value)}\t{float(new_balance)}", flush=True)
 
-        # Executed book: the holdings carried into the month are the partial move from the previous
-        #     executed book toward the target; the next month's turnover is measured against this state.
-        lp_diag = dict(_opt_base.LAST_LP_DIAG)
-        _wc = w_current.reindex(w_target.index).fillna(0.0) if isinstance(w_current, pd.Series) else pd.Series(np.asarray(w_current, dtype=float), index=w_target.index)
-        w_exec = _wc + float(alpha) * (w_target - _wc)
-        turnover_target_l1 = float(np.abs(w_target - _wc).sum())
-        turnover_exec_l1 = float(np.abs(w_exec - _wc).sum())
-
-        # Forward model-implied risk of the chosen book, known at the rebalance: the exposure signal is read
-        #     on centred scenarios; the raw reading is kept for audit.
+        # --- FORWARD model-implied risk of the CHOSEN book (causal: known at the rebalance, before
+        #     month t is traded). Posterior-predictive CVaR of w_target over the (S x N) scenario fan.
+        #     This is the self-timing signal for the model-CVaR overlay (cvar_target_overlay.py). ---
         try:
             R = np.asarray(pred_returns, dtype=float)             # (S, N) over etfs_list
             w_vec = np.asarray(w_target, dtype=float).reshape(-1)
@@ -499,39 +646,72 @@ def model_computation(
                 if m.shape[0] == w_vec.shape[0] and int(m.sum()) == R.shape[1]:
                     w_vec = w_vec[m]
             if R.ndim == 2 and R.shape[1] == w_vec.shape[0] and np.isfinite(w_vec).all():
-                port = R @ w_vec                                  # (S,) scenario returns of the book
+                # The internal risk signal belongs to the risky-sleeve composition, not to
+                # the already-scaled total-wealth exposure.  Normalize first so the signal
+                # cannot become circular when a smart/cash overlay is active.
+                target_exposure = float(np.sum(w_vec))
+                risky_w = w_vec / target_exposure if target_exposure > 1e-12 else w_vec
+                port_raw = R @ risky_w
                 a_fc = float(optimizer_config.get("forecast_cvar_level", 0.95))
-                port_mean = float(np.mean(port))
+                port_mean = float(np.mean(port_raw))
+                port_centered = port_raw - port_mean
 
-                def _cvar_of(values: np.ndarray) -> float:
-                    losses_ = -np.asarray(values, dtype=float)
-                    var_ = float(np.quantile(losses_, a_fc))
-                    tail_ = losses_[losses_ >= var_]
+                def _cvar_loss(values):
+                    losses = -np.asarray(values, dtype=float)
+                    var_ = float(np.quantile(losses, a_fc))
+                    tail_ = losses[losses >= var_]
                     return float(tail_.mean()) if tail_.size else var_
 
-                cvar_model_raw = _cvar_of(port)
-                cvar_model_centered = _cvar_of(port - port_mean)
+                cvar_model_raw = _cvar_loss(port_raw)
+                cvar_model_centered = _cvar_loss(port_centered)
+                # Legacy column now points to the publication-correct centered signal.
                 cvar_model = cvar_model_centered
-                vol_model = float(np.std(port, ddof=1))
+                vol_model = float(np.std(port_centered, ddof=1))
+
+                # Optional path-dependent companion signal.  For CDaR we remove the
+                # cross-scenario mean at each day before computing the centered version;
+                # this isolates path-shape/covariance risk from a deterministic drift path.
+                try:
+                    from scripts.calculations.drawdown import empirical_cdar, portfolio_path_returns
+                    _paths = np.asarray(current_scenario_paths, dtype=float) if current_scenario_paths is not None else None
+                    if _paths is None:
+                        raise RuntimeError("no predictive path cube available")
+                    _port_paths = portfolio_path_returns(_paths, risky_w)
+                    _a_cdar = float(_flatten_config(runtime_config["optimizer"]).get("cdar_confidence_level", a_fc))
+                    cdar_model_raw = float(empirical_cdar(_port_paths, alpha=_a_cdar))
+                    _paths_centered = _paths - np.mean(_paths, axis=0, keepdims=True)
+                    cdar_model_centered = float(empirical_cdar(portfolio_path_returns(_paths_centered, risky_w), alpha=_a_cdar))
+                except Exception:
+                    cdar_model_raw = cdar_model_centered = float("nan")
             else:
+                target_exposure = float(np.sum(w_vec)) if np.ndim(w_vec) else float("nan")
                 port_mean = cvar_model_raw = cvar_model_centered = cvar_model = vol_model = float("nan")
+                cdar_model_raw = cdar_model_centered = float("nan")
         except Exception:
+            target_exposure = float(np.asarray(w_target, dtype=float).sum())
             port_mean = cvar_model_raw = cvar_model_centered = cvar_model = vol_model = float("nan")
-        _dyn = dynamic_optimizer_config if isinstance(dynamic_optimizer_config, dict) else {}
+            cdar_model_raw = cdar_model_centered = float("nan")
         forecast_risk.append({
-            "date": _d, "cvar_model": cvar_model, "vol_model": vol_model,
-            "cvar_model_raw": cvar_model_raw, "cvar_model_centered": cvar_model_centered, "port_mean": port_mean,
-            "forecast_cvar_level": float(optimizer_config.get("forecast_cvar_level", 0.95)),
-            "beta_t": float(_dyn.get("confidence_level", optimizer_config.get("confidence_level", float("nan")))),
-            "lambda_t": float(_dyn.get("turnover_penalty", optimizer_config.get("turnover_penalty", float("nan")))),
-            "n_assets": int(len(etfs_list)), "n_obs": int(_safe_drop_date(historical_returns).shape[0]),
-            "cov_cond": float(getattr(modelClass, "last_cov_cond", float("nan"))),
-            "eff_rank": float(getattr(modelClass, "last_eff_rank", float("nan"))),
-            "alpha_exec": float(alpha), "turnover_target_l1": turnover_target_l1, "turnover_exec_l1": turnover_exec_l1,
-            "n_held_target": int((np.asarray(w_target, dtype=float) > 1e-4).sum()),
-            "n_held_exec": int((np.asarray(w_exec, dtype=float) > 1e-4).sum()),
-            **lp_diag,
+            "date": _d,
+            "cvar_model": cvar_model,
+            "cvar_model_centered": cvar_model_centered,
+            "cvar_model_raw": cvar_model_raw,
+            "cdar_model": cdar_model_centered,
+            "cdar_model_centered": cdar_model_centered,
+            "cdar_model_raw": cdar_model_raw,
+            "portfolio_scenario_mean": port_mean,
+            "vol_model": vol_model,
+            "forecast_cvar_centered": True,
+            "target_risky_exposure": target_exposure,
+            "backward_vol_timer": selection_info.get("backward_vol_timer"),
+            "forward_cvar_timer": selection_info.get("forward_cvar_timer"),
+            "forward_cdar_timer": selection_info.get("forward_cdar_timer"),
+            "forward_risk_timer": selection_info.get("forward_risk_timer"),
+            "forward_risk_measure": selection_info.get("forward_risk_measure"),
+            "conviction_timer": selection_info.get("conviction_timer"),
+            "overlay_fraction": selection_info.get("overlay_fraction"),
         })
+        selection_audit.append(selection_info)
 
         dynamic_controller.update_after_realized_return(float(return_value))
         
@@ -544,17 +724,64 @@ def model_computation(
             pnl_results=[new_balance, pnl, cost, return_value, alpha],
         )
         
-        # Reference state: the target path by default; `state_reference: executed` carries the executed book
-        #     instead (mechanism experiment).
-        portfolios[date]['target_weights'] = w_target
-        portfolios[date]['executed_weights'] = w_exec
-        if str(config.get("state_reference", "target")).lower() == "executed":
-            portfolios[date]['weights'] = w_exec
-            w_current = w_exec.copy()
-        else:
-            portfolios[date]['weights'] = w_target
-            w_current = w_target.copy()
+        # Policy-C handoff.  The optimizer anchor and the economic holdings state are
+        # intentionally different objects:
+        #   optimizer anchor(t+1) = target(t)
+        #   executed state(t+1)   = executed(t) + alpha * [target(t) - executed(t)]
+        # Returns and costs are generated from the executed state, never from an unfilled target.
+        alpha_used = float(np.clip(alpha, 0.0, 1.0))
+        w_executed = partial_execute(w_executed_state, w_target, alpha_used)
+
+        # Publication-accounting assertion: the engine cost must equal the configured
+        # rate times the actual gross L1 trade (every unit bought + every unit sold).
+        gross_traded = gross_turnover(w_executed_state, w_executed)
+        configured_cost_rate = float(exec_config.get("c_bps", 0.001))
+        expected_cost = proportional_transaction_cost(
+            w_executed_state, w_executed, configured_cost_rate
+        )
+        cost_residual = float(cost) - float(expected_cost)
+        if not np.isclose(float(cost), float(expected_cost), rtol=1e-10, atol=1e-12):
+            raise RuntimeError(
+                f"Policy-C cost mismatch on {date}: engine={float(cost):.16g}, "
+                f"expected={float(expected_cost):.16g}, residual={cost_residual:.3e}"
+            )
+
+        trade_vector = (w_executed - w_executed_state).astype(float)
+        try:
+            inactive = pd.Series(~np.asarray(mask, dtype=bool), index=trade_vector.index)
+            forced_exit_gross = float(np.abs(trade_vector.loc[inactive]).sum())
+        except Exception:
+            forced_exit_gross = float("nan")
+
+        execution_audit.append({
+            "decision_date": date,
+            "return_date": future_date.strftime('%Y-%m-%d'),
+            "execution_policy": POLICY_C_ID,
+            "alpha": alpha_used,
+            "optimizer_anchor": "previous_target",
+            "execution_start": "previous_executed_holdings",
+            "gross_traded_notional": gross_traded,
+            "conventional_one_way_turnover": 0.5 * gross_traded,
+            "forced_exit_gross_traded_notional": forced_exit_gross,
+            "cost_rate_per_traded_unit": configured_cost_rate,
+            "transaction_cost": float(cost),
+            "expected_transaction_cost": float(expected_cost),
+            "cost_identity_residual": cost_residual,
+            "optimizer_anchor_to_target_l1": gross_turnover(w_optimizer_anchor, w_target),
+            "executed_state_to_target_l1": gross_turnover(w_executed_state, w_target),
+        })
+
+        portfolios[date]["optimizer_anchor_weights"] = np.asarray(w_optimizer_anchor, dtype=float)
+        portfolios[date]["target_weights"] = np.asarray(w_target, dtype=float)
+        portfolios[date]["executed_weights"] = np.asarray(w_executed, dtype=float)
+        # Backward-compatible alias: in the final policy `weights` means actual holdings.
+        portfolios[date]["weights"] = np.asarray(w_executed, dtype=float)
+        if risk_matrices:
+            risk_matrices[-1]["target_weights"] = {str(k): float(v) for k, v in zip(portfolios[date]["Key"], np.asarray(w_target, dtype=float))}
+            risk_matrices[-1]["executed_weights"] = {str(k): float(v) for k, v in zip(portfolios[date]["Key"], np.asarray(w_executed, dtype=float))}
         current_balance = new_balance
+        w_optimizer_anchor = w_target.copy()
+        w_executed_state = w_executed.copy()
         prev_date = day
             
     results_class.transform_results_to_df()
@@ -567,16 +794,45 @@ def model_computation(
         pd.DataFrame(dynamic_history).to_csv(output_path / "dynamic_parameter_history.csv", index=False)
     if forecast_risk:
         pd.DataFrame(forecast_risk).to_csv(output_path / "forecast_risk.csv", index=False)
-    if selection_audit:
-        audit_for_csv = []
-        for row in selection_audit:
-            clean = dict(row)
-            for key in ["validation_best", "test_best", "selected_params"]:
-                if key in clean:
-                    clean[key] = json.dumps(clean[key], default=str)
-            audit_for_csv.append(clean)
-        pd.DataFrame(audit_for_csv).to_csv(output_path / "selection_audit.csv", index=False)
+    if execution_audit:
+        pd.DataFrame(execution_audit).to_csv(output_path / "execution_audit.csv", index=False)
+    save_selection_audit(output_path, selection_audit)
+    save_candidate_trials(output_path, trial_audit)
+    save_risk_matrices(output_path, risk_matrices)
+    # The risk snapshots are among the largest objects in a long walk-forward run.
+    # They are no longer needed in memory once persisted; release them before the
+    # validation/Plotly post-processing stage.
+    risk_matrices.clear()
+    try:
+        current_scenario_paths = None
+        pred_returns = None
+        modelClass = None
+    except Exception:
+        pass
+    import gc
+    gc.collect()
 
+    save_run_metadata(output_path, {
+        "return_type": exec_config.get("return_type", "log-returns"),
+        "scenario_return_type": model_config.get("scenario_return_type", exec_config.get("return_type", "log-returns")),
+        "horizon": int(model_config.get("horizon", 21)),
+        "optimizer": optimizer_config,
+        "smart_signals_enabled": bool(config.get("smart_signals", {}).get("enabled", False)),
+        "execution_policy": POLICY_C_ID,
+        "execution_policy_description": POLICY_C_DESCRIPTION,
+        "execution_state_policy": "policy_C_split_previous_target_anchor_actual_executed_holdings",
+        "optimizer_turnover_reference": "previous_target",
+        "economic_trade_start": "previous_executed_holdings",
+        "return_booking_state": "executed_holdings_full_universe_including_names_leaving_feasible_set",
+        "transaction_cost_convention": "c_bps times gross L1 traded notional (buys plus sells)",
+        "transaction_cost_rate_per_traded_unit": float(exec_config.get("c_bps", 0.001)),
+        "transaction_cost_bps_per_traded_unit": 10000.0 * float(exec_config.get("c_bps", 0.001)),
+        "exposure_overlay_costs_in_core_run": False,
+        "note": "Numerical results are valid only when generated from point-in-time input data.",
+    })
+    # Heavy validation/report generation is intentionally deferred until this
+    # function returns.  That lets Python release the model, scenario, portfolio,
+    # and audit working sets before post-processing starts.
     return portfolios
 
 
@@ -622,26 +878,39 @@ def build_portfolios_from_matrix(matrix_path, sheet_names_str, returns_cols, mar
 
 
 def main() -> None:
-    first_business_days = pd.read_excel(OUTPUT / "business_dates.xlsx", index_col=0)['Values']
+    args = parse_args()
+    config_path = Path.cwd() / "scripts" / "configs" / args.config_path
+    config = read_yaml(config_path, PARAMS)
+    output_folder = args.result_folder or config.get("output_folder", "advanced_bayesian_portfolio")
+    output_path = Path.cwd() / "results" / output_folder
+
+    # Recovery path for a completed optimization whose post-processing was killed
+    # by the OS.  Crucially, do this before loading the large ETF input matrices.
+    if args.postprocess_only:
+        run_postprocessing(
+            output_path,
+            config=config,
+            split_date=config.get("report_split_date"),
+        )
+        logger.info(f"SUCCESS (postprocess-only): {output_path}")
+        return
+
+    first_business_days = pd.read_excel(OUTPUT / "business_dates.xlsx", index_col=0)["Values"]
     sheet_names_str = first_business_days.apply(lambda x: x.strftime('%Y-%m-%d')).tolist()[1:]
-    
+
     df_prices = pd.read_csv(INPUT_PATH / "NewClosePrice.csv")
     df_volumes = pd.read_csv(INPUT_PATH / "Volume.csv")
     market_cap = _make_market_cap_frame(df_prices, df_volumes)
-    
-    
+
+    # BEST - Used by parsing Adjusting Close Price
     returns_all = pd.read_csv(OUTPUT / "new_etf_returns.csv")
     ewma_returns_all = pd.read_csv(OUTPUT / "new_etf_ewma.csv")
-    
+
     returns_all['Date'] = pd.to_datetime(returns_all['Date'])
     returns_all = returns_all.fillna(0)
     ewma_returns_all['Date'] = pd.to_datetime(ewma_returns_all['Date'])
-    
-    logger.info('Successful file reading')
 
-    args = parse_args()
-    config_path = Path.cwd()/ "scripts" / "configs" / args.config_path
-    config = read_yaml(config_path, PARAMS)
+    logger.info('Successful file reading')
 
     # ---- universe source: eligibility MATRIX (new) or the multi-sheet filtered xlsx (default) ----
     pmatrix = config.get("portfolio_matrix")
@@ -657,74 +926,6 @@ def main() -> None:
     else:
         portfolios = pd.read_excel(OUTPUT / "last_filtered_weights.xlsx", sheet_name=sheet_names_str)
 
-    # ---- mechanism experiment: FIXED feasible set (membership frozen at one rebalance date) ----
-    _freeze = config.get("freeze_universe_at")
-    if _freeze:
-        _fkey = pd.to_datetime(_freeze).strftime("%Y-%m-%d")
-        if _fkey not in portfolios:
-            raise ValueError(f"freeze_universe_at={_freeze} is not a rebalance sheet")
-        _base = portfolios[_fkey].set_index("Key")["Value"]
-        _n_changed = 0
-        for _ds, _df in portfolios.items():
-            if pd.to_datetime(_ds) >= pd.to_datetime(_fkey):
-                _new = _df["Key"].map(_base).fillna(0).astype(int).values
-                _n_changed += int((_new != _df["Value"].values).sum())
-                _df["Value"] = _new
-        logger.info(f"universe frozen at {_fkey}: {int(_base.sum())} eligible names; {_n_changed} membership cells overridden")
-
-    # Data-availability rule: a name is eligible in month t only if the close file carries an observed price
-    # within the last `require_recent_price_days` trading days before the rebalance date.
-    _rq = config.get("require_recent_price_days")
-    if _rq:
-        _px = df_prices.copy(); _pdc = _px.columns[0]
-        _px[_pdc] = pd.to_datetime(_px[_pdc], errors="coerce")
-        _px = _px.set_index(_pdc).sort_index().apply(pd.to_numeric, errors="coerce")
-        _n_removed = 0; _removed_names = set(); _months_hit = 0
-        for _ds, _df in portfolios.items():
-            _d = pd.to_datetime(_ds)
-            _win = _px.loc[_px.index < _d].tail(int(_rq))
-            if _win.empty:
-                continue
-            _has = _win.notna().any(axis=0)
-            _keys = _df["Key"].astype(str).values; _vals = _df["Value"].values
-            _drop = [i for i, t in enumerate(_keys) if int(_vals[i]) == 1 and not bool(_has.get(t, False))]
-            if _drop:
-                _removed_names |= {_keys[i] for i in _drop}
-                _df.loc[_df.index[_drop], "Value"] = 0
-                _n_removed += len(_drop); _months_hit += 1
-        logger.info(f"data-availability guard ({_rq} trading days): {_n_removed} eligibility cells removed in "
-                    f"{_months_hit} months; names {sorted(_removed_names)}")
-
-    # History rule: a name is eligible only with at least `require_history_days` observed closes before the
-    # rebalance date; names observed since the first day of the panel are exempt.
-    _rh = config.get("require_history_days")
-    if _rh:
-        if not _rq:
-            _px = df_prices.copy(); _pdc = _px.columns[0]
-            _px[_pdc] = pd.to_datetime(_px[_pdc], errors="coerce")
-            _px = _px.set_index(_pdc).sort_index().apply(pd.to_numeric, errors="coerce")
-        _cum = _px.notna().cumsum()
-        # The panel starts on 2016-01-04, so a fund observed from the panel's first day has an unknown,
-        # longer history: it is exempt (its listing predates the panel). The rule therefore bites only on
-        # funds listed after the panel start, which is the intended target (young entrants).
-        _first_obs = _px.apply(lambda s: s.first_valid_index())
-        _exempt = set(_first_obs[_first_obs == _px.index.min()].index.astype(str))
-        _n_removed = 0; _months_hit = 0; _removed_names = set()
-        for _ds, _df in portfolios.items():
-            _d = pd.to_datetime(_ds)
-            _before = _cum.loc[_cum.index < _d]
-            if _before.empty:
-                continue
-            _cnt = _before.iloc[-1]
-            _keys = _df["Key"].astype(str).values; _vals = _df["Value"].values
-            _drop = [i for i, t in enumerate(_keys) if int(_vals[i]) == 1 and t not in _exempt and int(_cnt.get(t, 0)) < int(_rh)]
-            if _drop:
-                _removed_names |= {_keys[i] for i in _drop}
-                _df.loc[_df.index[_drop], "Value"] = 0
-                _n_removed += len(_drop); _months_hit += 1
-        logger.info(f"history rule ({_rh} observed closes): {_n_removed} eligibility cells removed in "
-                    f"{_months_hit} months; {len(_removed_names)} names")
-
     model_computation(
         config=config,
         first_business_days=first_business_days,
@@ -732,7 +933,23 @@ def main() -> None:
         ewma_returns_all=ewma_returns_all,
         returns_all=returns_all,
         portfolios=portfolios,
-        output_folder=config.get("output_folder", "advanced_bayesian_portfolio"),
+        output_folder=output_folder,
+    )
+
+    # The numerical run and core artifacts are now on disk.  Drop all large input
+    # and portfolio objects before importing/allocating validation + Plotly state.
+    del portfolios, returns_all, ewma_returns_all, market_cap, df_prices, df_volumes, first_business_days
+    import gc
+    gc.collect()
+
+    if args.skip_postprocess:
+        logger.info(f"SUCCESS (core Policy-C run; post-processing skipped): {output_path}")
+        return
+
+    run_postprocessing(
+        output_path,
+        config=config,
+        split_date=config.get("report_split_date"),
     )
 
     logger.info('SUCCESS')

@@ -32,10 +32,12 @@ class BlackLitterman(BaseCVaR):
         self.risk_free_rate = float(self.config.get("risk_free_rate", 0.02)) / 252.0
         self.count_etf = self.pred_returns.shape [1]
         
+        # # 1 way - considering last month for delta calculation as fraction of mean reaturns last month to var
         # self.last_month = self.historical_returns[-self.market_cap.shape[0]+1:]
         # self.excess_return = np.sum(self.last_month, axis=1) - self.risk_free_rate
         # self.delta = np.mean(self.excess_return)/np.var(self.excess_return, ddof=1)
         
+        # # 2 way - considering all month (all market portfolio)
         # total_market_cap = np.sum(self.market_cap, axis=0)
         # w_market = total_market_cap / np.sum(total_market_cap)
         # market_returns = np.dot(self.historical_returns, w_market) - self.risk_free_rate
@@ -65,6 +67,7 @@ class BlackLitterman(BaseCVaR):
         self.get_results()
         
     
+    # # Past
     # def _calculate_equilibrium_returns(self) -> np.ndarray:        
     #     total_market_cap = np.sum(self.market_cap, axis=0)
     #     w_market = total_market_cap / np.sum(total_market_cap)
@@ -73,6 +76,7 @@ class BlackLitterman(BaseCVaR):
     
     
     # @beartyp
+    # # Past
     # def _construct_investor_views(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     #     def row_matrix(row, type: Literal["1", "2", "3"]):
     #         if type == "1":

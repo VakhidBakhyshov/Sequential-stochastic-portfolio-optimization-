@@ -43,6 +43,7 @@ def main():
 
     weights = weights.div(weights.sum(axis=1), axis=0) # Normalize each month to 100%
 
+    # # I way - Keep top ETFs and group the rest - all etfs
     # top_n = 20
     # top_etfs = weights.max().sort_values(ascending=False).head(top_n).index
     # plot_df = weights[top_etfs].copy()

@@ -16,6 +16,7 @@ from scripts.executions.base import BaseExecution
 from scripts.models.registry import MODEL_REGISTRY
 from scripts.optimizers.registry import CVAR_REGISTRY
 from scripts.strategies.registry import STRATEGY_REGISTRY
+from scripts.risk_controls.smart_signals import smart_rebalance_diagnostics
 
 
 BACKTEST_ENGINE_DEFAULTS = BacktestEngineConfig(
@@ -27,7 +28,10 @@ BACKTEST_ENGINE_DEFAULTS = BacktestEngineConfig(
     c_bps=0.0010,
     refit_on_full_history=True,
     include_hold_current=True,
-    include_strategies=True,
+    include_optimizers=True,
+    include_strategies=False,
+    stability_weight=0.50,
+    degradation_penalty=0.25,
     alpha_grid=(1.0, 0.75, 0.50, 0.25),
     rank_penalty_turnover=0.02,
 )
@@ -36,10 +40,10 @@ BACKTEST_ENGINE_DEFAULTS = BacktestEngineConfig(
 DEFAULT_OPTIMIZER_PARAM_GRID = {
     # Keep small enough for monthly research runs. Invalid task/type pairs are skipped safely.
     "type": ["bayessian", "markowitz", "black_litterman"],
-    "task_type": ["mean_cvar_sharpe", "cvar_returns", "max_sharpe", "min_variance", "black_litterman"],
+    "task_type": ["return_cvar_constraint", "mean_cvar_sharpe", "max_sharpe", "min_variance", "black_litterman"],
     "max_weight": [0.08, 0.12],
     "min_weight": [0.00],
-    "turnover_penalty": [0.10, 0.50],
+    "turnover_penalty": [0.001, 0.003],
     "penalty_type": ["L1"],
     "confidence_level": [0.95, 0.975],
     "risk_aversion": [0.0],
@@ -83,6 +87,12 @@ def _engine_config_from_config(config: dict[str, Any], exec_config: dict[str, An
     )
     allowed = set(BacktestEngineConfig.__dataclass_fields__.keys())
     updates = {k: v for k, v in user_cfg.items() if k in allowed}
+    # Optimizer runs and strategy runs use the same engine, but they must not
+    # silently compete unless the YAML explicitly requests a mixed experiment.
+    if "include_optimizers" not in updates:
+        updates["include_optimizers"] = bool(config.get("optimizer"))
+    if "include_strategies" not in updates:
+        updates["include_strategies"] = bool(config.get("strategy")) and not bool(config.get("optimizer"))
     return replace(base, **updates)
 
 
@@ -97,8 +107,10 @@ def results_by_nested_backtest_engine(
     historical_ewma_returns: pd.DataFrame,
     pred_returns: np.ndarray,
     future_returns: pd.DataFrame,
-    w_previous: pd.Series,
+    w_optimizer_reference: pd.Series,
+    w_execution_state: pd.Series,
     current_balance: float,
+    scenario_paths: np.ndarray | None = None,
 ) -> tuple[np.ndarray, pd.Series, pd.DataFrame, pd.DataFrame, dict[str, Any], float]:
     """Nested train/validation/internal-test selection for one monthly rebalance."""
     model_config = flatten_config(config.get("model"))
@@ -134,7 +146,8 @@ def results_by_nested_backtest_engine(
         historical_returns=hist_returns,
         historical_ewma_returns=hist_ewma,
         market_cap_history=market_cap_input,
-        w_previous=pd.Series(w_previous.loc[mask].values, index=etfs_list),
+        w_optimizer_reference=pd.Series(w_optimizer_reference.loc[mask].values, index=etfs_list),
+        w_execution_state=pd.Series(w_execution_state.loc[mask].values, index=etfs_list),
         fallback_pred_returns=pred_returns,
     )
 
@@ -150,9 +163,42 @@ def results_by_nested_backtest_engine(
         selected_asset_weights=selected_weights,
     )
 
+    # Optional smart signal layer: Kelly sizing, risk-reward, volatility clustering,
+    # efficiency ratio, ATR regime, liquidity and breakout/pullback quality.
+    smart_cfg = dict(config.get("smart_signals", {}) or {})
+    smart_diag = {}
+    if bool(smart_cfg.get("enabled", False)):
+        try:
+            asset_w = pd.Series(w_target.loc[mask].values, index=etfs_list, dtype=float)
+            signal_table, diag, adjusted_asset_w = smart_rebalance_diagnostics(
+                etfs_list=etfs_list,
+                historical_returns=hist_returns,
+                pred_returns=pred_returns,
+                scenario_paths=scenario_paths,
+                market_cap_history=market_cap_input,
+                selected_asset_weights=asset_w,
+                return_type=exec_config.get("return_type", "log-returns"),
+                config=smart_cfg,
+            )
+            if bool(smart_cfg.get("apply_position_sizing", True)):
+                w_target = build_full_weight_series(
+                    portfolios_date=portfolios_date,
+                    mask=mask,
+                    etfs_list=etfs_list,
+                    selected_asset_weights=adjusted_asset_w,
+                    preserve_total_exposure=bool(smart_cfg.get("allow_cash_overlay", True)),
+                )
+            smart_diag = diag.to_dict()
+            smart_diag.update({
+                "smart_signal_table": signal_table.reset_index(names="ticker").to_dict(orient="records")[:500],
+                "smart_position_sizing_applied": bool(smart_cfg.get("apply_position_sizing", True)),
+            })
+        except Exception as exc:
+            smart_diag = {"smart_signal_error": str(exc)}
+
     results = exec_class(
         exec_config,
-        w_previous,
+        w_execution_state,
         w_target,
         mask,
         future_returns,
@@ -161,6 +207,8 @@ def results_by_nested_backtest_engine(
     ).execution_process(is_dynamic_alpha=True)
 
     split_info = dict(selection.split_info)
+    if selection.selected_optimizer_diagnostics:
+        split_info.update({f"optimizer_{k}": v for k, v in selection.selected_optimizer_diagnostics.items()})
     split_info.update(
         {
             "selected_candidate_id": selection.selected.candidate_id,
@@ -168,8 +216,13 @@ def results_by_nested_backtest_engine(
             "selected_method": selection.selected.method,
             "selected_alpha": float(selection.selected.alpha),
             "selected_params": selection.selected.params,
+            "target_risky_exposure": float(w_target.sum()),
+            "optimizer_reference": "previous_target",
+            "execution_start": "previous_executed_holdings",
+            "execution_cost_basis": "actual_gross_traded_notional",
         }
     )
+    split_info.update(smart_diag)
 
     return (
         np.array(results, dtype=float),

@@ -43,9 +43,9 @@ def clean_returns(
         df = df.dropna(axis=0, how="any")
 
     if df.shape[1] < 2:
-        raise ValueError("Fewer than two assets remain after cleaning.")
+        raise ValueError("После очистки осталось меньше двух активов.")
     if df.shape[0] < 3:
-        raise ValueError("Too few observations remain after cleaning.")
+        raise ValueError("После очистки осталось слишком мало наблюдений.")
     return df
 
 
@@ -188,4 +188,4 @@ def estimate_covariance(returns: Union[pd.DataFrame, np.ndarray], method: str = 
         cov = sample_covariance(returns)
         corr, std = cov_to_corr(cov)
         return nearest_psd(corr_to_cov(tapered_correlation(corr, **kwargs), std))
-    raise ValueError(f"Unknown method: {method}")
+    raise ValueError(f"Неизвестный метод: {method}")
