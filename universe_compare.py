@@ -17,6 +17,7 @@ except Exception:
     HAS_LW = False
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from overlay_arms import overlay
 
 ROOT = Path(__file__).resolve().parent
 RES = ROOT / "results"
@@ -119,9 +120,9 @@ def main():
         r_static = load_pnl(off_f).iloc[1:]; r_strong = load_pnl(strong_f).iloc[1:]
         kt_rv = realized_vol_k(load_weights(strong_f), load_pnl(strong_f).index, dly).reindex(r_strong.index)
         kt_mc = model_cvar_k(strong_f, r_strong.index)
-        r_real = kt_rv * r_strong + (1 - kt_rv) * RF/12
-        r_mc = kt_mc * r_strong + (1 - kt_mc) * RF/12
-        r_comb = (kt_rv * kt_mc).clip(KMIN, KMAX) * r_strong + (1 - (kt_rv * kt_mc).clip(KMIN, KMAX)) * RF/12
+        r_real = overlay(kt_rv, r_strong)
+        r_mc = overlay(kt_mc, r_strong)
+        r_comb = overlay((kt_rv * kt_mc).clip(KMIN, KMAX), r_strong)
         bench = benchmarks(off_f, dly)
         arms = {"Static": r_static, "Dynamic base": r_strong, "+Realized-vol": r_real,
                 "+Model-CVaR": r_mc, "+Combined (Primary)": r_comb,
