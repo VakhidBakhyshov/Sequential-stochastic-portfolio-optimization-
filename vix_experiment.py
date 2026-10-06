@@ -2,7 +2,7 @@
 
 Claims to test (Part 1, section 2b/G2):
   - VIX is a FAST signal: its exposure dial should correlate highly with the realized-vol dial
-    (both react to recent turbulence), unlike our slow model-implied dial (corr 0.17).
+    (both react to recent turbulence), unlike our slow model-implied dial.
   - Therefore, as the SECOND signal next to realized vol, VIX should add less than the slow signal:
     combined(fast realized x VIX) should beat neither combined(fast realized x slow model)
     nor add much over realized-only.
@@ -20,6 +20,7 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 import numpy as np, pandas as pd
 from pathlib import Path
+from overlay_arms import overlay as net_overlay
 
 ROOT = Path(__file__).resolve().parent
 RES = ROOT / "results"
@@ -100,7 +101,7 @@ def main():
     k_vix = pd.Series(k_vix)
 
     # --- arms ---
-    def overlay(k): return k * rs + (1 - k) * RF / 12
+    def overlay(k): return net_overlay(k, rs)
     arms = {
         "Base (no overlay)":            rs,
         "Realized-vol only":            overlay(k_rv),
