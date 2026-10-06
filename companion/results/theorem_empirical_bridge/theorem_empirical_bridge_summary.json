@@ -1,0 +1,146 @@
+{
+  "mode": "synthetic_known_dgp_and_controlled_misspecification",
+  "seed": 20260910,
+  "n_coverage_objects": 59,
+  "checks": [
+    {
+      "result": "Prop1/Cor1",
+      "check": "Gaussian location-scale spanning",
+      "value": 0.9976013882095288,
+      "metric": "R2(centered CVaR ~ sigma)"
+    },
+    {
+      "result": "Prop1 contrast",
+      "check": "Regime-mixture tail shape not constant",
+      "value": 0.018027672383174813,
+      "metric": "std(CVaR/sigma)"
+    },
+    {
+      "result": "Prop2",
+      "check": "Binding-level budget degeneracy",
+      "value": 2.0816681711721685e-17,
+      "metric": "median |signal-budget| when binding"
+    },
+    {
+      "result": "Prop3/Lemma1",
+      "check": "Horizon mean domination",
+      "value": 15.874507866387543,
+      "metric": "252d/1d mean-vol multiplier"
+    },
+    {
+      "result": "Prop4",
+      "check": "Combination strict-gain region",
+      "value": 1.0,
+      "metric": "share error surface with strict gain"
+    },
+    {
+      "result": "Prop5",
+      "check": "Constant-scale Sharpe invariance",
+      "value": 5.551115123125783e-17,
+      "metric": "Sharpe range across k"
+    },
+    {
+      "result": "Remark9",
+      "check": "Predictable scaling no-alpha null",
+      "value": 0.00014554042630624017,
+      "metric": "mean scaled excess return over null MC"
+    },
+    {
+      "result": "Prop6",
+      "check": "Dimension worsens covariance estimation",
+      "value": 0.9725075337302507,
+      "metric": "corr(N/T,cov error)"
+    },
+    {
+      "result": "Lemma3",
+      "check": "Threshold certificate",
+      "value": 0.0,
+      "metric": "max flip probability inside certified region"
+    },
+    {
+      "result": "Lemma6",
+      "check": "EMA impulse identity",
+      "value": 1.3877787807814457e-17,
+      "metric": "max impulse residual"
+    },
+    {
+      "result": "Prop7",
+      "check": "Rank instability rises with score noise",
+      "value": 0.8809153654994141,
+      "metric": "corr(noise, membership change)"
+    },
+    {
+      "result": "Lemma7",
+      "check": "Turnover-Jaccard identity",
+      "value": 1.1102230246251565e-16,
+      "metric": "max identity residual"
+    },
+    {
+      "result": "Lemma4",
+      "check": "Partial execution identities",
+      "value": 4.440892098500626e-16,
+      "metric": "max numerical residual"
+    },
+    {
+      "result": "Lemma5/Prop10",
+      "check": "Turnover penalty reduces turnover",
+      "value": -0.5250181122177506,
+      "metric": "corr(lambda,turnover)"
+    },
+    {
+      "result": "Prop9",
+      "check": "Shadow-price envelope",
+      "value": 5.9847959921199845e-15,
+      "metric": "median |dual - dV/dc| on binding cells"
+    },
+    {
+      "result": "Remark12",
+      "check": "Parameter box",
+      "value": 0.0,
+      "metric": "beta bound violation"
+    },
+    {
+      "result": "Property1",
+      "check": "Prefix invariance",
+      "value": 0.0,
+      "metric": "decision difference after future-only perturbation"
+    },
+    {
+      "result": "Prop11/A2",
+      "check": "Geometric aggregation Lipschitz",
+      "value": 1.9867098878493465,
+      "metric": "empirical max ratio"
+    },
+    {
+      "result": "Lemma8",
+      "check": "Coherent aggregation residual",
+      "value": 2.7755575615628914e-17,
+      "metric": "max axiom residual (positive means violation for subadditivity)"
+    },
+    {
+      "result": "Prop12/13",
+      "check": "Search creates selection optimism",
+      "value": 0.31466381512848646,
+      "metric": "optimism M=320 minus M=1 at T=83"
+    },
+    {
+      "result": "PropA1",
+      "check": "Exposure-preserving tilts",
+      "value": 5.551115123125783e-16,
+      "metric": "max exposure residual"
+    },
+    {
+      "result": "PropA3",
+      "check": "FWL incremental MSE identity",
+      "value": 3.885780586188048e-16,
+      "metric": "max formula-vs-measured residual"
+    },
+    {
+      "result": "Counterexample3",
+      "check": "Composition discontinuity",
+      "value": 1.0,
+      "metric": "weight jump under +/- epsilon mean tilt"
+    }
+  ],
+  "historical_note": "Historical ETF audit is generated only from a completed point-in-time run; this synthetic audit does not replace it."
+}

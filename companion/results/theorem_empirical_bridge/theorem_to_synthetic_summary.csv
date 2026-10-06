@@ -1,0 +1,24 @@
+result,check,value,metric
+Prop1/Cor1,Gaussian location-scale spanning,0.9976013882095288,R2(centered CVaR ~ sigma)
+Prop1 contrast,Regime-mixture tail shape not constant,0.018027672383174813,std(CVaR/sigma)
+Prop2,Binding-level budget degeneracy,2.0816681711721685e-17,median |signal-budget| when binding
+Prop3/Lemma1,Horizon mean domination,15.874507866387543,252d/1d mean-vol multiplier
+Prop4,Combination strict-gain region,1.0,share error surface with strict gain
+Prop5,Constant-scale Sharpe invariance,5.551115123125783e-17,Sharpe range across k
+Remark9,Predictable scaling no-alpha null,0.00014554042630624017,mean scaled excess return over null MC
+Prop6,Dimension worsens covariance estimation,0.9725075337302507,"corr(N/T,cov error)"
+Lemma3,Threshold certificate,0.0,max flip probability inside certified region
+Lemma6,EMA impulse identity,1.3877787807814457e-17,max impulse residual
+Prop7,Rank instability rises with score noise,0.8809153654994141,"corr(noise, membership change)"
+Lemma7,Turnover-Jaccard identity,1.1102230246251565e-16,max identity residual
+Lemma4,Partial execution identities,4.440892098500626e-16,max numerical residual
+Lemma5/Prop10,Turnover penalty reduces turnover,-0.5250181122177506,"corr(lambda,turnover)"
+Prop9,Shadow-price envelope,5.9847959921199845e-15,median |dual - dV/dc| on binding cells
+Remark12,Parameter box,0.0,beta bound violation
+Property1,Prefix invariance,0.0,decision difference after future-only perturbation
+Prop11/A2,Geometric aggregation Lipschitz,1.9867098878493465,empirical max ratio
+Lemma8,Coherent aggregation residual,2.7755575615628914e-17,max axiom residual (positive means violation for subadditivity)
+Prop12/13,Search creates selection optimism,0.31466381512848646,optimism M=320 minus M=1 at T=83
+PropA1,Exposure-preserving tilts,5.551115123125783e-16,max exposure residual
+PropA3,FWL incremental MSE identity,3.885780586188048e-16,max formula-vs-measured residual
+Counterexample3,Composition discontinuity,1.0,weight jump under +/- epsilon mean tilt
