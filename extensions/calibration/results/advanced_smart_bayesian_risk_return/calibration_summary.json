@@ -1,0 +1,16 @@
+{
+  "n_trials": 60,
+  "n_completed": 60,
+  "n_pareto": 18,
+  "max_return_trial": 15,
+  "risk_control_trial": 15,
+  "pair_heatmaps": [
+    "C:\\Users\\slava\\Desktop\\LAST\\vb_engine_run\\results\\calibration\\advanced_smart_bayesian_risk_return\\parameter_pair_heatmaps\\pair_heatmap__model_mom_tilt__optimizer_0_max_weight.png",
+    "C:\\Users\\slava\\Desktop\\LAST\\vb_engine_run\\results\\calibration\\advanced_smart_bayesian_risk_return\\parameter_pair_heatmaps\\pair_heatmap__model_mom_tilt__smart_signals_cvar_target_multiplier.png",
+    "C:\\Users\\slava\\Desktop\\LAST\\vb_engine_run\\results\\calibration\\advanced_smart_bayesian_risk_return\\parameter_pair_heatmaps\\pair_heatmap__model_mom_tilt__backtest_engine_stability_weight.png",
+    "C:\\Users\\slava\\Desktop\\LAST\\vb_engine_run\\results\\calibration\\advanced_smart_bayesian_risk_return\\parameter_pair_heatmaps\\pair_heatmap__optimizer_0_max_weight__smart_signals_cvar_target_multiplier.png",
+    "C:\\Users\\slava\\Desktop\\LAST\\vb_engine_run\\results\\calibration\\advanced_smart_bayesian_risk_return\\parameter_pair_heatmaps\\pair_heatmap__optimizer_0_max_weight__backtest_engine_stability_weight.png",
+    "C:\\Users\\slava\\Desktop\\LAST\\vb_engine_run\\results\\calibration\\advanced_smart_bayesian_risk_return\\parameter_pair_heatmaps\\pair_heatmap__smart_signals_cvar_target_multiplier__backtest_engine_stability_weight.png"
+  ],
+  "parameter_importance_rows": 91
+}

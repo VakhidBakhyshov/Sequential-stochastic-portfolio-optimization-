@@ -1,0 +1,141 @@
+balance: 1000.0
+window: rolling
+lookback_years: 3
+initial_weight: equal
+portfolio: filtered
+use_backtest_engine: true
+strict_nested_engine: true
+output_folder: calibration_runs\advanced_smart_bayesian_risk_return\trial_00043
+is_previous: false
+seed: 42
+model:
+- type: bayessian
+- matrix_type: fast
+- mean_return: sampled
+- distribution: t_student
+- df: 5
+- posterior: empirical_bayes
+- n_samples: 1000
+- n_scenarios: 1000
+- horizon: 21
+- scenario_return_type: log-returns
+- cov_method: ledoit_wolf
+- random_state: 42
+- shrink_floor: 0.2
+- prior_strength: 126.0
+- mom_tilt: 0.0
+- mom_lookback: 252
+- mom_gap: 21
+- mean_clip_sigma: 1.5
+optimizer:
+- type: bayessian
+  min_weight: 0.0
+  max_weight: 0.15
+  task_type: return_cvar_constraint
+  confidence_level: 0.975
+  cvar_budget_mult: 0.75
+  turnover_penalty: 0.006289573586658199
+  penalty_type: L1
+  is_all_methods: false
+execution:
+- type: base_exec
+  return_type: log-returns
+  is_past: true
+  use_dynamic_alpha: true
+  c_bps: 0.001
+optimizer_param_grid:
+  type:
+  - bayessian
+  task_type:
+  - return_cvar_constraint
+  - mean_cvar_sharpe
+  max_weight:
+  - 0.15
+  min_weight:
+  - 0.0
+  turnover_penalty:
+  - 0.006289573586658199
+  penalty_type:
+  - L1
+  confidence_level:
+  - 0.975
+  cvar_budget_mult:
+  - 0.75
+  return_weight:
+  - 1.0
+  cvar_weight:
+  - 1.0
+  sharpe_weight:
+  - 1.0
+  is_all_methods:
+  - false
+backtest_engine:
+  validation_months: 9
+  internal_test_months: 3
+  top_k_validation: 8
+  select_metric: score
+  alpha_grid:
+  - 1.0
+  - 0.75
+  - 0.5
+  - 0.25
+  rank_penalty_turnover: 0.02
+  include_hold_current: true
+  include_optimizers: true
+  include_strategies: false
+  refit_on_full_history: true
+  stability_weight: 0.4
+  degradation_penalty: 0.05
+smart_signals:
+  enabled: true
+  apply_position_sizing: true
+  allow_cash_overlay: true
+  horizon: 21
+  cvar_alpha: 0.95
+  cvar_target_window: 504
+  cvar_target_multiplier: 0.7
+  overlay_combination: geometric_mean
+  forward_weight: 0.5
+  conviction_weight: 0.2
+  kelly_cap: 0.45000000000000007
+  portfolio_kelly_cap: 1.0
+  target_portfolio_kelly: 0.5
+  risk_reward_cap: 5.0
+  target_risk_reward: 1.5
+  target_monthly_vol: 0.045
+  min_overlay: 0.2
+  target_signal_quality: 0.55
+  quality_tilt_strength: 0.4
+  max_active_weight: 0.12
+  er_window: 21
+  atr_short_window: 21
+  atr_long_window: 126
+  breakout_window: 63
+  pullback_window: 63
+  spike_window: 21
+  net_move_window: 21
+  liquidity_window: 21
+  garch_omega: 1.0e-06
+  garch_alpha: 0.08
+  garch_beta: 0.9
+research_validation:
+  enabled: true
+  periods_per_year: 12
+  risk_free_rate: 0.02
+  adjust_serial_correlation: true
+  psr_threshold: 0.95
+  dsr_threshold: 0.95
+  fdr_alpha: 0.05
+  dsr_trial_count_mode: raw
+  num_trials_override: null
+  trial_sharpe_mean_override: null
+  trial_sharpe_std_override: null
+signal_research:
+  enabled: true
+  rolling_window: 24
+  max_lag: 6
+  defensive_quantile: 0.2
+  min_train: 24
+  distribution_bootstrap_samples: 199
+  conditional_bins: 5
+  max_surface_signals: 6
