@@ -1,0 +1,21 @@
+{
+  "return_type": "log-returns",
+  "scenario_return_type": "log-returns",
+  "horizon": 21,
+  "optimizer": {
+    "type": "bayessian",
+    "min_weight": 0.005,
+    "max_weight": 0.12,
+    "task_type": "return_cvar_constraint",
+    "confidence_level": 0.95,
+    "cvar_budget_mult": 1.0,
+    "turnover_penalty": 0.01,
+    "penalty_type": "L1",
+    "is_all_methods": false,
+    "dynamic_parameters": {
+      "enabled": false
+    }
+  },
+  "smart_signals_enabled": false,
+  "note": "Numerical results are valid only when generated from point-in-time input data."
+}
