@@ -1,5 +1,0 @@
-arm,Cumul,Ann,Vol,Sharpe,Sortino,MaxDD,Calmar,CVaR95,DSR%
-Realized-vol only,81.437,8.995,9.443,0.75,1.274,-10.754,0.836,-4.41,96.4
-Model-CVaR only,82.069,9.05,9.091,0.781,1.161,-9.555,0.947,-4.934,96.4
-FIXED product (Primary),74.305,8.365,7.365,0.859,1.428,-6.545,1.278,-3.644,97.9
-CAUSAL adaptive tilt,68.149,7.803,7.616,0.765,1.138,-8.587,0.909,-4.282,96.2

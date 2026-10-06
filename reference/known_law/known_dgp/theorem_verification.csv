@@ -1,7 +1,0 @@
-result,metric,value,tolerance,pass
-centered_tail_translation_invariance,max_centered_difference_over_mean_shifts,0.0,1e-12,True
-uncentered_tail_translation_equivariance,slope_abs_error,6.661338147750939e-16,1e-12,True
-gaussian_rank_reversal_probability,mc_minus_exact_abs,0.0002814146582180571,0.003,True
-ema_impulse_geometric_decay,max_ratio_error,0.0,1e-12,True
-partial_execution_turnover_identity,max_abs_identity_error,8.326672684688674e-17,1e-12,True
-two_signal_error_covariance_condition,c_lt_min_v,0.00011394133596569478,0.00016752703889730088,True
