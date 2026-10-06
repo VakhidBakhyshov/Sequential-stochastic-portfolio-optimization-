@@ -1,0 +1,23 @@
+criterion,source,basic_value,advanced_value,higher_is_better,advanced_wins,advanced_minus_basic
+Annualized Return,equal_weight_backtest,0.06626283353378781,0.0672230651691128,True,True,0.0009602316353249929
+Sharpe Ratio,equal_weight_backtest,0.5107125457510885,0.3817845899561444,True,False,-0.1289279557949441
+Sortino Ratio,equal_weight_backtest,0.7566834510169241,0.48542584583730664,True,False,-0.2712576051796175
+Annualized Volatility,equal_weight_backtest,0.09570209844280482,0.14683922704678776,False,False,0.05113712860398294
+Max Drawdown,equal_weight_backtest,-0.14781241408190016,-0.22427413798646356,True,False,-0.0764617239045634
+CVaR (95%),equal_weight_backtest,-0.055684725644419286,-0.08264431130755852,True,False,-0.026959585663139232
+Calmar Ratio,equal_weight_backtest,0.44829004346734225,0.2997361433317388,True,False,-0.14855390013560343
+Annualized One-Way Turnover,equal_weight_backtest,2.5632717469261013,5.145786415756317,False,False,2.5825146688302154
+median_dollar_volume,selected_asset_quality,44647508810.069756,10516009232.96344,True,False,-34131499577.106316
+median_volatility,selected_asset_quality,0.09194488228563927,0.13112776784338603,False,False,0.039182885557746766
+median_downside_volatility,selected_asset_quality,0.05473621530928456,0.0736620057038946,False,False,0.018925790394610037
+median_drawdown_abs,selected_asset_quality,0.0369982588860438,0.041628200942955496,False,False,0.004629942056911696
+median_risk_adjusted_return,selected_asset_quality,1.5049615653378159,2.6329875661135005,True,True,1.1280260007756846
+median_amihud_illiquidity,selected_asset_quality,4.049931326510632e-12,1.8212543847727322e-11,False,False,1.416261252121669e-11
+Mean Universe Jaccard Overlap,universe_stability,0.6673633448126709,0.41775257918074016,True,False,-0.24961076563193074
+Bootstrap P(advanced better): Annualized Return,paired_block_bootstrap,,0.5158,True,False,
+Bootstrap P(advanced better): Annualized Volatility,paired_block_bootstrap,,0.0,True,False,
+Bootstrap P(advanced better): Sharpe Ratio,paired_block_bootstrap,,0.2474,True,False,
+Bootstrap P(advanced better): Sortino Ratio,paired_block_bootstrap,,0.2568,True,False,
+Bootstrap P(advanced better): Max Drawdown,paired_block_bootstrap,,0.0504,True,False,
+Bootstrap P(advanced better): CVaR (95%),paired_block_bootstrap,,0.0,True,False,
+Bootstrap P(advanced better): Calmar Ratio,paired_block_bootstrap,,0.2338,True,False,
