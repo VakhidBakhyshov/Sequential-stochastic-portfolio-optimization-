@@ -11,6 +11,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from overlay_arms import overlay
 
 ROOT = Path(__file__).resolve().parent
 RUN = ROOT / "results" / "main_dyn_strong"
@@ -89,33 +90,33 @@ def main():
             vol_d = port_daily.rolling(span, min_periods=10).std()
         vol_ann = vol_d * np.sqrt(252)
         for tv in TARGET_VOLS:
-            scaled = []
+            ks = []
             for k in range(1, len(pnl)):
-                end = pnl.index[k]; start = pnl.index[k - 1]
-                rk = r_month.iloc[k]
-                ve = vol_ann.asof(start)               # vol known at month start (causal)
-                kk = np.clip(tv / ve, K_MIN, K_MAX) if (ve == ve and ve > 0) else K_MAX
-                scaled.append(kk * rk + (1 - kk) * RISK_FREE / 12)
-            results[f"{vname} @ {int(tv*100)}%"] = perf(np.array(scaled))
+                ve = vol_ann.asof(pnl.index[k - 1])    # vol known at month start (causal)
+                ks.append(float(np.clip(tv / ve, K_MIN, K_MAX)) if (ve == ve and ve > 0) else K_MAX)
+            results[f"{vname} @ {int(tv*100)}%"] = perf(overlay(np.array(ks), r_month.iloc[1:].values))
 
     table = pd.DataFrame(results).T
     print("\n=== FAST (daily) vol-target overlay vs STRONG ===")
     print(table.to_string())
     table.to_csv(RUN / "fast_voltarget_metrics.csv")
 
-    # ---- save the chosen overlay (Roll21d @ 12%) as a pnl-like CSV (4th arm) ----
+    # ---- save the chosen overlay (Roll21d @ 12%) as a pnl-like CSV (4th arm) and its exposure path ----
     CHOSEN_SPAN, CHOSEN_TV = 21, 0.12
     vol_ann = (port_daily.rolling(CHOSEN_SPAN, min_periods=10).std()) * np.sqrt(252)
-    bal = 1000.0; rows = [(pnl.index[0], bal, 0.0)]
+    ks = []
     for k in range(1, len(pnl)):
-        start = pnl.index[k - 1]; rk = r_month.iloc[k]
-        ve = vol_ann.asof(start)
-        kk = np.clip(CHOSEN_TV / ve, K_MIN, K_MAX) if (ve == ve and ve > 0) else K_MAX
-        rr = kk * rk + (1 - kk) * RISK_FREE / 12
-        bal *= (1 + rr); rows.append((pnl.index[k], bal, rr))
+        ve = vol_ann.asof(pnl.index[k - 1])
+        ks.append(float(np.clip(CHOSEN_TV / ve, K_MIN, K_MAX)) if (ve == ve and ve > 0) else K_MAX)
+    k_path = pd.Series(ks, index=pnl.index[1:], name="k").rename_axis("Date")
+    net = overlay(k_path, r_month.iloc[1:])
+    bal = 1000.0; rows = [(pnl.index[0], bal, 0.0)]
+    for dt, rr in net.items():
+        bal *= (1 + rr); rows.append((dt, bal, rr))
     out_dir = ROOT / "results" / "main_voltarget"; out_dir.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows, columns=["Date", "Balance", "Returns"]).set_index("Date").to_csv(out_dir / "pnl.csv")
-    print(f"\nSaved chosen overlay (Roll21d @ {int(CHOSEN_TV*100)}%) -> {out_dir/'pnl.csv'}  final balance {bal:,.2f}")
+    k_path.to_csv(out_dir / "exposure.csv")
+    print(f"\nSaved chosen overlay (Roll21d @ {int(CHOSEN_TV*100)}%) -> {out_dir/'pnl.csv'} and exposure.csv  final balance {bal:,.2f}")
 
 
 if __name__ == "__main__":
