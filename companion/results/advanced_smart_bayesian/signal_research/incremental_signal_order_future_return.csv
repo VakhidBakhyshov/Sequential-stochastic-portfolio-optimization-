@@ -1,0 +1,5 @@
+step,added_signal,accepted_set,oos_mse,marginal_oos_mse_improvement,relative_mse_improvement,oos_predictions,fwl_population_mse_gain_descriptive,accepted
+0,__causal_mean_baseline__,[],0.0019488703709828444,,0.0,59,,True
+1,asset_mean_risk_reward_ratio,"[""asset_mean_risk_reward_ratio""]",0.001922008029128391,2.6862341854453492e-05,0.013783544690510335,59,2.9766903015005673e-05,True
+2,asset_mean_net_move,"[""asset_mean_risk_reward_ratio"", ""asset_mean_net_move""]",0.001905257874092259,1.675015503613199e-05,0.008714924590470102,59,5.163477740946791e-05,True
+3,asset_mean_pullback_ratio,"[""asset_mean_risk_reward_ratio"", ""asset_mean_net_move""]",0.0019070369282728488,-1.779054180589849e-06,-0.000933760308660297,59,1.2864518343758736e-05,False

@@ -1,0 +1,23 @@
+{
+  "eligible_i1_signals": [
+    "asset_mean_liquidity_score",
+    "asset_dispersion_liquidity_score"
+  ],
+  "performed": true,
+  "trace_statistics": [
+    13.68773564264985,
+    1.1373225920148766
+  ],
+  "trace_critical_values_95": [
+    15.4943,
+    3.8415
+  ],
+  "max_eigen_statistics": [
+    12.550413050634972,
+    1.1373225920148766
+  ],
+  "max_eigen_critical_values_95": [
+    14.2639,
+    3.8415
+  ]
+}
