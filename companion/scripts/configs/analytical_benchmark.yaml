@@ -1,0 +1,19 @@
+# Known-distribution theorem-verification experiment.
+# These are synthetic/analytical outputs and must not be mixed with empirical ETF evidence.
+known_dgp:
+  n_assets: 24
+  top_k: 12
+  n_days: 2016
+  lookback_days: 504
+  filter_window_days: 90
+  rebalance_days: 21
+  scenario_count: 1500
+  beta_read: 0.95
+  target_annual_vol: 0.12
+  exposure_floor: 0.30
+  max_weight: 0.20
+  turnover_penalty: 0.002
+  execution_eta: 0.55
+  score_ema_alpha: 0.50
+  risk_free_annual: 0.02
+  seed: 20260908
