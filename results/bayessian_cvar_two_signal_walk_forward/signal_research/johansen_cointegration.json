@@ -1,0 +1,12 @@
+{
+  "eligible_i1_signals": [
+    "portfolio_risk_reward",
+    "selected_count",
+    "asset_mean_liquidity_score",
+    "asset_dispersion_liquidity_score",
+    "asset_dispersion_normalized_spike",
+    "asset_median_risk_reward_ratio",
+    "cvar_model_raw"
+  ],
+  "performed": false
+}
