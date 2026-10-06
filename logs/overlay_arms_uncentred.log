@@ -1,7 +1,0 @@
-=== main_dyn_strong [w=weights, cvar=cvar_model_raw] ===
-           Cumul    Ann     Vol  Sharpe  Sortino   MaxDD  Calmar  CVaR95  mean_k  P>fast Sharpe  P>fast shallowerDD  P>base Sharpe  P>base shallowerDD  corr(kF,kS)
-arm                                                                                                                                                                
-base      91.630  9.860  12.429   0.660    0.974 -16.562   0.595  -6.598   1.000            NaN                 NaN            NaN                 NaN          NaN
-fast      81.437  8.995   9.443   0.750    1.274 -10.754   0.836  -4.410   0.835            NaN                 NaN            NaN                 NaN        0.421
-slow      78.993  8.781   8.765   0.779    1.180  -9.092   0.966  -4.656   0.775            NaN                 NaN            NaN                 NaN          NaN
-combined  72.080  8.164   7.104   0.862    1.432  -5.995   1.362  -3.604   0.674          0.869                0.99          0.881               0.999          NaN
