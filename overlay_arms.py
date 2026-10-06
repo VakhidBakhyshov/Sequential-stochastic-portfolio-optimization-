@@ -1,5 +1,6 @@
 """Build the exposure arms (base / fast / slow / combined) for ANY run folder, with the exact conventions
 of fast_voltarget.py and cvar_target_overlay.py, and report Table-1-style metrics plus paired bootstraps.
+Every overlay arm is net of the cost of its own exposure moves (see `overlay`).
 
 Usage:
   python overlay_arms.py <run_folder> [--weights-col weights] [--cvar-col cvar_model] [--label NAME] [--out file.csv]
@@ -9,13 +10,7 @@ Usage:
 """
 from __future__ import annotations
 import sys, argparse
-# sys.stdout.reconfigure(encoding="utf-8")
-try:
-    sys.stdout.reconfigure(encoding="utf-8")
-    sys.stderr.reconfigure(encoding="utf-8")
-except (AttributeError, ValueError):
-    # Not a real text stream (e.g. IPython/Jupyter OutStream) — skip.
-    pass
+sys.stdout.reconfigure(encoding="utf-8")
 import numpy as np, pandas as pd
 from pathlib import Path
 from scipy.stats import skew, kurtosis, norm
@@ -23,6 +18,22 @@ from scipy.stats import skew, kurtosis, norm
 ROOT = Path(__file__).resolve().parent; RES = ROOT / "results"
 DAILY = ROOT / "datasets" / "excel" / "new_etf_returns.csv"
 RF = 0.02; KMIN, KMAX = 0.30, 1.00; SPAN, TV = 21, 0.12; SEED = 42; NBOOT = 5000
+C_BPS = 0.001   # 10 bp per unit of wealth traded, the rate charged inside the runs
+
+
+def exposure_cost(k):
+    """Cost of the exposure moves: C_BPS per unit of wealth moved between the book and cash each month.
+    The exposure in place in the first month is not charged, so a constant exposure costs nothing."""
+    if isinstance(k, pd.Series):
+        return C_BPS * k.diff().abs().fillna(0.0)
+    k = np.asarray(k, float)
+    return C_BPS * np.abs(np.diff(k, prepend=k[:1]))
+
+
+def overlay(k, r):
+    """Net monthly return of the book r held at exposure k: the risky slice, the cash slice at the
+    risk-free rate, and the cost of moving the exposure."""
+    return k * r + (1 - k) * RF / 12 - exposure_cost(k)
 
 
 def load_pnl(folder):
@@ -85,18 +96,7 @@ def paired_boot(a, b):
     return float(np.mean(ws)), float(np.mean(wd))
 
 
-def exposure_cost_series(k: pd.Series, rate: float) -> pd.Series:
-    """Pure exposure-channel cost: rate * |k_t-k_{t-1}|.
-
-    Composition costs are already embedded in pnl.csv.  This optional cost therefore
-    charges only changes in the scalar risky-exposure multiplier and avoids silently
-    double-counting the book's composition turnover.
-    """
-    kk = pd.Series(k, dtype=float).sort_index()
-    return float(rate) * kk.diff().abs().fillna(0.0)
-
-
-def build(folder: Path, weights_col="weights", cvar_col="cvar_model", *, charge_exposure_costs=False, exposure_cost_bps=0.001):
+def build(folder: Path, weights_col="weights", cvar_col="cvar_model"):
     r = load_pnl(folder); r_m = r.iloc[1:]
     dly = daily_simple(); W = load_weights(folder, weights_col); pdaily = book_daily(W, dly)
     vol_ann = pdaily.rolling(SPAN, min_periods=10).std() * np.sqrt(252)
@@ -108,16 +108,13 @@ def build(folder: Path, weights_col="weights", cvar_col="cvar_model", *, charge_
     cstar = cv.expanding(min_periods=6).median().bfill()
     kS = (cstar / cv).clip(KMIN, KMAX)
     kC = (kF * kS).clip(KMIN, KMAX)
-    ks = {"base": pd.Series(1.0, index=r_m.index), "fast": kF, "slow": kS, "combined": kC}
     arms = {
-        "base": r_m.copy(),
-        "fast": kF * r_m + (1 - kF) * RF / 12,
-        "slow": kS * r_m + (1 - kS) * RF / 12,
-        "combined": kC * r_m + (1 - kC) * RF / 12,
+        "base": r_m,
+        "fast": overlay(kF, r_m),
+        "slow": overlay(kS, r_m),
+        "combined": overlay(kC, r_m),
     }
-    if charge_exposure_costs:
-        for name in ("fast", "slow", "combined"):
-            arms[name] = arms[name] - exposure_cost_series(ks[name], exposure_cost_bps).reindex(r_m.index).fillna(0.0)
+    ks = {"base": pd.Series(1.0, index=r_m.index), "fast": kF, "slow": kS, "combined": kC}
     return arms, ks
 
 
@@ -125,20 +122,12 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("folder"); ap.add_argument("--weights-col", default="weights"); ap.add_argument("--cvar-col", default="cvar_model")
     ap.add_argument("--label", default=None); ap.add_argument("--out", default=None)
-    ap.add_argument("--charge-exposure-costs", action="store_true", help="charge scalar overlay turnover |k_t-k_{t-1}|")
-    ap.add_argument("--exposure-cost-bps", type=float, default=0.001, help="cost rate per unit of exposure traded; 0.001 = 10 bp")
     a = ap.parse_args()
     folder = RES / a.folder
-    arms, ks = build(
-        folder, a.weights_col, a.cvar_col,
-        charge_exposure_costs=a.charge_exposure_costs, exposure_cost_bps=a.exposure_cost_bps,
-    )
+    arms, ks = build(folder, a.weights_col, a.cvar_col)
     rows = []
     for name, rr in arms.items():
-        m = metrics(rr.values); m["mean_k"] = float(ks[name].mean())
-        m["exposure_turnover"] = float(ks[name].diff().abs().fillna(0.0).sum())
-        m["exposure_cost_pct"] = (float(a.exposure_cost_bps) * m["exposure_turnover"] * 100.0) if a.charge_exposure_costs else 0.0
-        m["arm"] = name; rows.append(m)
+        m = metrics(rr.values); m["mean_k"] = float(ks[name].mean()); m["arm"] = name; rows.append(m)
     T = pd.DataFrame(rows).set_index("arm")
     pS, pD = paired_boot(arms["fast"].values, arms["combined"].values)
     pS2, pD2 = paired_boot(arms["base"].values, arms["combined"].values)
