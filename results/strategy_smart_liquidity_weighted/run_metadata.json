@@ -1,0 +1,11 @@
+{
+  "return_type": "log-returns",
+  "scenario_return_type": "log-returns",
+  "horizon": 21,
+  "strategy": {
+    "type": "liquidity_weighted",
+    "min_weight": 0.0,
+    "max_weight": 0.12
+  },
+  "smart_signals_enabled": true
+}
