@@ -19,6 +19,7 @@ from pathlib import Path
 from scipy.stats import norm, skew, kurtosis
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from overlay_arms import overlay
 
 ROOT = Path(__file__).resolve().parent
 RES = ROOT / "results"
@@ -51,16 +52,16 @@ def ann_sharpe(r):
 def max_dd(r):
     eq = np.cumprod(1 + np.asarray(r, float)); return float(np.min(eq/np.maximum.accumulate(eq) - 1))
 def apply_k(k, r_book):
-    return k * r_book + (1 - k) * RF/12
+    return overlay(k, r_book)
 
 
 def main():
     r_book = load_pnl("main_dyn_strong").iloc[1:]
-    r_vt = load_pnl("main_voltarget").iloc[1:].reindex(r_book.index)
     fc = pd.read_csv(RES / "main_dyn_strong" / "forecast_risk.csv"); fc["date"] = pd.to_datetime(fc["date"])
     cv = fc.set_index("date")["cvar_model"].astype(float).reindex(r_book.index)
 
-    k_rv = ((r_vt - RF/12) / (r_book - RF/12)).clip(KMIN, KMAX)      # realized-vol exposure (backward)
+    # realized-vol exposure (backward), the path saved by fast_voltarget.py
+    k_rv = pd.read_csv(RES / "main_voltarget" / "exposure.csv", index_col=0, parse_dates=True)["k"].reindex(r_book.index)
     # model-CVaR exposure (forward); CAUSAL normalizer = expanding median of the signal's own past
     # (min 6 months, first months back-filled) — same convention as verify_all.py / overlay_arms.py.
     k_mc = (cv.expanding(min_periods=6).median().bfill() / cv).clip(KMIN, KMAX)

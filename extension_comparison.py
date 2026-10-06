@@ -1,4 +1,4 @@
-"""Extension section artifacts: multi-signal (colleague engine) vs HDRC (main study).
+"""Extension section artifacts: multi-signal (companion engine) vs HDRC (main study).
 
 Outputs: fig_extension.png (growth + drawdown), fig_riskreturn_map.png (operating points),
 extension_comparison.csv (metrics), and bootstrap comparisons printed.
