@@ -16,6 +16,7 @@ from pathlib import Path
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt, matplotlib.dates as mdates
 import report_style as rs; rs.apply()
+from overlay_arms import overlay, C_BPS
 
 ROOT = Path(__file__).resolve().parent
 RES = ROOT / "results" / "main_dyn_strong"
@@ -100,12 +101,12 @@ def main():
     print("=" * 96)
     rng = np.random.default_rng(SEED); P = 2000
     kv = k_cb.values; rv_arr = rs_.values
-    r_dyn = kv * rv_arr + (1 - kv) * RF / 12
+    r_dyn = overlay(kv, rv_arr)
     dyn_dd, dyn_sh = max_dd(r_dyn), ann_sharpe(r_dyn)
     dds = np.empty(P); shs = np.empty(P)
     for p in range(P):
         kp = rng.permutation(kv)
-        rp = kp * rv_arr + (1 - kp) * RF / 12
+        rp = overlay(kp, rv_arr)
         dds[p] = max_dd(rp); shs[p] = ann_sharpe(rp)
     print(f"  dynamic:              MaxDD {dyn_dd*100:6.2f}%   Sharpe {dyn_sh:.3f}")
     print(f"  placebo distribution: MaxDD mean {dds.mean()*100:6.2f}% [5th {np.percentile(dds,5)*100:.2f}, 95th {np.percentile(dds,95)*100:.2f}]"
@@ -118,20 +119,21 @@ def main():
     print("=" * 96)
     for nm, k in [("fast (k_rv)", k_rv), ("slow (k_mc)", k_mc), ("combined", k_cb)]:
         dk = k.diff().abs().dropna()
-        print(f"  {nm:14s} mean|dk| = {dk.mean():.4f}/mo   annual one-way overlay turnover = {dk.mean()*12:.2f}x")
+        print(f"  {nm:14s} mean|dk| = {dk.mean():.4f}/mo   annual exposure turnover = {dk.mean()*12:.2f}x")
     dkc = k_cb.diff().abs().fillna(0).values
     base_sh = ann_sharpe(rv_arr)
     lo, hi = 0.0, 1.0
-    def sh_net(bps):
-        return ann_sharpe(kv * rv_arr + (1 - kv) * RF / 12 - bps * dkc)
+    def sh_net(rate):
+        return ann_sharpe(kv * rv_arr + (1 - kv) * RF / 12 - rate * dkc)
+    print(f"  exposure moves charged at {C_BPS*1e4:.0f} bp per unit: HDRC Sharpe {sh_net(C_BPS):.3f} vs base {base_sh:.3f}")
     if sh_net(0) > base_sh:
         for _ in range(60):
             mid = 0.5 * (lo + hi)
             if sh_net(mid) > base_sh: lo = mid
             else: hi = mid
-        print(f"  break-even INCREMENTAL overlay cost vs unmanaged base: {0.5*(lo+hi)*1e4:.0f} bps per unit turnover")
+        print(f"  break-even cost of the exposure moves (HDRC Sharpe = base Sharpe): {0.5*(lo+hi)*1e4:.0f} bps per unit turnover")
     else:
-        print("  combined does not exceed base Sharpe at zero incremental cost")
+        print("  combined does not exceed base Sharpe at zero exposure cost")
 
     print(); print("=" * 96)
     print("(f) PROP 5(b) CHECK: predicted mechanical MDD = kbar x MDD(1)")

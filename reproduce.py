@@ -17,6 +17,7 @@ STEPS = [  # (name, argv); overlays before verification, verification before fig
     ("cvar_target_overlay",    ["cvar_target_overlay.py"]),
     ("verify_all",             ["verify_all.py"]),
     ("benchmarks",             ["benchmarks.py"]),
+    ("tail_bootstrap",         ["tail_bootstrap.py"]),
     ("vix_experiment",         ["vix_experiment.py"]),
     ("controls",               ["controls.py"]),
     ("paper_measurements",     ["paper_measurements.py"]),
