@@ -1,0 +1,56 @@
+balance: 1000.0
+window: rolling
+lookback_years: 3
+initial_weight: equal
+portfolio: filtered
+portfolio_matrix: rebalance_universe_matrix2.csv
+universe_cap: 400
+use_backtest_engine: false
+output_folder: strong_m2
+is_previous: true
+seed: 42
+
+
+model:
+  - type: bayessian
+  - matrix_type: fast
+  - mean_return: sampled
+  - distribution: normal
+  - posterior: horseshoe
+  - n_samples: 1000
+  - n_scenarios: 5000        # number of posterior-predictive scenarios
+  - horizon: 21
+  - cov_method: ledoit_wolf
+  - random_state: 42
+
+
+optimizer:
+  - type: bayessian
+    min_weight: 0.005
+    max_weight: 0.12
+    task_type: "return_cvar_constraint"   # maximize expected return subject to CVaR <= budget
+    confidence_level: 0.95                 # base CVaR tail level (controller adapts it)
+    cvar_budget_mult: 1.0                  # budget = 1.0 x CVaR(equal-weight)
+    turnover_penalty: 0.01                 # base L1 turnover penalty (the controller adapts it)
+    penalty_type: L1
+    is_all_methods: false
+    dynamic_parameters:
+      enabled: true
+      confidence_direction: -1.0   # tighten CVaR tail (toward 0.995) in stress -> tighter budget
+      confidence_step: 0.05
+      confidence_min: 0.90
+      confidence_max: 0.995
+      turnover_direction: 1.0
+      turnover_step: 0.55
+
+
+execution:
+  - type: base_exec
+    return_type: "log-returns"
+    is_past: True
+    use_dynamic_alpha: true
+    c_bps: 1e-3
+# data-availability guard: eligible only with an observed close on the last trading day before the rebalance
+require_recent_price_days: 1
+# history rule: at least 60 months (1260) of observed closes before the rebalance; funds observed since the panel start are exempt
+require_history_days: 1260
