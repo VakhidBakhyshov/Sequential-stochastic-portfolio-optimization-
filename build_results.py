@@ -3,7 +3,7 @@
 Outputs (package root):
   res_composition_static.png, res_composition_dynamic.png  (monthly 100% stacked composition)
   res_performance.png        (growth of $1, key arms + 1/N)
-  res_turnover.png           (monthly one-way turnover of the held book)
+  res_turnover.png           (monthly turnover of the held book, wealth bought plus sold)
   res_dynamic_params.png     (alpha, lambda, score over time)
 and prints ETF-count + turnover statistics used in the write-up.
 """
@@ -107,7 +107,7 @@ def turnover(weights):
     for i in range(1, len(allm)):
         if allm[i] < pd.Timestamp("2019-01-01"): continue
         a, b = weights[allm[i-1]], weights[allm[i]]; idx = a.index.union(b.index)
-        t.append((allm[i], float(np.abs(b.reindex(idx).fillna(0) - a.reindex(idx).fillna(0)).sum()) / 2))
+        t.append((allm[i], float(np.abs(b.reindex(idx).fillna(0) - a.reindex(idx).fillna(0)).sum())))
     return pd.Series(dict(t))
 
 
@@ -124,10 +124,10 @@ def main():
     print("=== ETF-count per month (held book) ===")
     held_stats(w_static, "Static (allocator)"); held_stats(w_strong, "Dynamic / managed book")
 
-    print("\n=== Turnover (one-way, held book) ===")
+    print("\n=== Turnover (held book, wealth bought plus sold) ===")
     tn = turnover(w_strong)
     print(f"  mean={tn.mean()*100:.1f}%  median={tn.median()*100:.1f}%  max={tn.max()*100:.1f}%  "
-          f"zero-turnover months={int((tn<1e-9).sum())}/{len(tn)}  big(>=10%)={int((tn>=0.10).sum())}")
+          f"zero-turnover months={int((tn<1e-9).sum())}/{len(tn)}  big(>=20%)={int((tn>=0.20).sum())}")
     cost = pd.read_csv(RES / "main_dyn_strong" / "pnl.csv")["Cost"].astype(float).iloc[1:]
     print(f"  total transaction cost over sample = {cost.sum()*100:.2f}% of balance")
 
@@ -159,11 +159,11 @@ def main():
 
     # ---- turnover chart ----
     fig, ax = plt.subplots(figsize=(12, 3.8))
-    colv = [rs.RED if v >= 0.10 else rs.BLUE for v in tn.values]
+    colv = [rs.RED if v >= 0.20 else rs.BLUE for v in tn.values]
     ax.bar(tn.index, tn.values * 100, width=20, color=colv, linewidth=0)
-    ax.set_ylabel("One-way turnover (%)"); ax.grid(axis="y")
+    ax.set_ylabel("Turnover (% of wealth bought plus sold)"); ax.grid(axis="y")
     ax.xaxis.set_major_locator(mdates.YearLocator()); ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    rs.title(ax, "Monthly portfolio turnover", f"Median {tn.median()*100:.0f}%; large rebalances (>=10%, red) in {int((tn>=0.10).sum())} of {len(tn)} months")
+    rs.title(ax, "Monthly portfolio turnover", f"Median {tn.median()*100:.0f}%; large rebalances (>=20%, red) in {int((tn>=0.20).sum())} of {len(tn)} months")
     fig.tight_layout(); fig.savefig(ROOT / "res_turnover.png", dpi=150, bbox_inches="tight"); plt.close(fig)
 
     # ---- dynamic parameters ----
