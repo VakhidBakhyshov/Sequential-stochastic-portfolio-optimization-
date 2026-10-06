@@ -1,0 +1,3 @@
+step,added_signal,accepted_set,oos_mse,marginal_oos_mse_improvement,relative_mse_improvement,oos_predictions,fwl_population_mse_gain_descriptive,accepted
+0,__causal_mean_baseline__,[],0.0030725793480116835,,0.0,59,,True
+1,cvar_model,[],0.003676253614453183,-0.0006036742664414997,-0.19647149774411757,58,7.577675920824713e-06,False
