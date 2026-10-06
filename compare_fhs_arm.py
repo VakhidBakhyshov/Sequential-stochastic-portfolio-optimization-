@@ -15,6 +15,7 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 import numpy as np, pandas as pd
 from pathlib import Path
+from overlay_arms import overlay
 
 ROOT = Path(__file__).resolve().parent
 RES = ROOT / "results"
@@ -89,7 +90,7 @@ def build_arm(arm, DLY):
     cv = fcs["cvar_model"].astype(float).reindex(rs.index)
     k_mc = (cv.expanding(min_periods=6).median().bfill() / cv).clip(KMIN, KMAX)
     k_cb = (k_rv * k_mc).clip(KMIN, KMAX)
-    ov = lambda k: k * rs + (1 - k) * RF / 12
+    ov = lambda k: overlay(k, rs)
     series = {"Base (no overlay)": rs, "+ Realized-vol": ov(k_rv),
               "+ Model-CVaR": ov(k_mc), "+ Combined": ov(k_cb)}
     diag = {"W": W, "k_rv": k_rv, "k_mc": k_mc, "k_cb": k_cb,
