@@ -1,0 +1,817 @@
+2026-07-30 02:27:48.908 | INFO     | __main__:main:650 - Successful file reading
+2026-07-30 02:27:52.926 | INFO     | __main__:model_computation:314 - Run start: portfolio=filteredmodel=bayessian, optimizer=bayessian, execution=base_exec
+Portfolio optimization with month weight rebalancing: 0it [00:00, ?it/s]Portfolio optimization with 0 month weight rebalancing 2019-01-02 00:00:00: : 0it [00:00, ?it/s]2026-07-30 02:27:53.235 | WARNING  | __main__:model_computation:474 - Nested engine fallback on 2019-01-02: "['BOND'] not in index"
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.1
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=36
+IN-SAMPLE alpha grid-search best alphas[index]=np.float64(0.1),results[index]=array([ 8.93150787e+02, -1.06849213e-01,  1.65876777e-04, -1.06849213e-01])
+best_index=np.int64(0) np.sum(w_target)=np.float64(1.0000000000000002) case[index%2]='max_alpha'
+0.5 2019-02-01 00:00:00 1079.1495567944764 0.07914955679447638 0.0008293838862559244 0.07914955679447644
+PROGRESS	2019-02-01	211	36	0.07914955679447644	1079.1495567944764
+Portfolio optimization with 0 month weight rebalancing 2019-01-02 00:00:00: : 1it [00:00,  2.72it/s]Portfolio optimization with 1 month weight rebalancing 2019-02-01 00:00:00: : 1it [00:00,  2.72it/s]2026-07-30 02:27:53.542 | WARNING  | __main__:model_computation:474 - Nested engine fallback on 2019-02-01: "['BOND'] not in index"
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.1
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=41
+IN-SAMPLE alpha grid-search best alphas[index]=np.float64(1.0),results[index]=array([1.10613054e+03, 2.50020765e-02, 9.52606635e-04, 2.50020765e-02])
+best_index=np.int64(0) np.sum(w_target)=np.float64(1.0) case[index%2]='max_alpha'
+0.4786431597801894 2019-03-01 00:00:00 1111.3156166412791 0.029806860081886426 0.0004559586498380005 0.029806860081886377
+PROGRESS	2019-03-01	213	41	0.029806860081886377	1111.3156166412791
+Portfolio optimization with 1 month weight rebalancing 2019-02-01 00:00:00: : 2it [00:00,  2.96it/s]Portfolio optimization with 2 month weight rebalancing 2019-03-01 00:00:00: : 2it [00:00,  2.96it/s]self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=27
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=26
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=27
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=26
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=25
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=28
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=44
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=44
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=48
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=50
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=50
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=53
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=43
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=41
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=37
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=52
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=48
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=39
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=117 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=117 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=117 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=113 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=113 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=113 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(216,)
+1.0 2019-04-01 00:00:00 1136.5609901953335 0.022716655085216187 0.00013527825702837158 0.022716655085216253
+PROGRESS	2019-04-01	216	209	0.022716655085216253	1136.5609901953335
+Portfolio optimization with 2 month weight rebalancing 2019-03-01 00:00:00: : 3it [00:15,  6.78s/it]Portfolio optimization with 3 month weight rebalancing 2019-04-01 00:00:00: : 3it [00:15,  6.78s/it]self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=17
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=19
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=15
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=47
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=36
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=32
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=41
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=39
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=29
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=20
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=20
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=16
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=18
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=17
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=15
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=40
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=39
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=31
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=41
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=40
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=30
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=130 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=130 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=130 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=130 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=130 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=130 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=110 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=110 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=110 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+1.0 2019-05-01 00:00:00 1154.8934665566799 0.016129777917325616 9.898353220172554e-05 0.016129777917325505
+PROGRESS	2019-05-01	217	209	0.016129777917325505	1154.8934665566799
+Portfolio optimization with 3 month weight rebalancing 2019-04-01 00:00:00: : 4it [00:29,  9.64s/it]Portfolio optimization with 4 month weight rebalancing 2019-05-01 00:00:00: : 4it [00:29,  9.64s/it]self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=25
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=24
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=25
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=25
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=17
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=49
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=43
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=36
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=52
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=47
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=35
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=25
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=20
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=15
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=45
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=44
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=39
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=45
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=39
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=37
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(217,)
+1.0 2019-06-03 00:00:00 1108.9870877382464 -0.03974944888666103 0.00011432641163382445 -0.03974944888666099
+PROGRESS	2019-06-03	217	149	-0.03974944888666099	1108.9870877382464
+Portfolio optimization with 4 month weight rebalancing 2019-05-01 00:00:00: : 5it [00:42, 11.12s/it]Portfolio optimization with 5 month weight rebalancing 2019-06-03 00:00:00: : 5it [00:42, 11.12s/it]self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=24
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=20
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=40
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=39
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=30
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=44
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=45
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=31
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=24
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=21
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=42
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=39
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=31
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=43
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=36
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=35
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=146 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=146 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=146 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=142 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=142 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=142 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=96 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=96 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=96 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=132 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=132 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=132 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=217 weights.shape=(217,)
+1.0 2019-07-01 00:00:00 1175.3232184278818 0.05981686479770165 5.55711676518714e-05 0.05981686479770154
+PROGRESS	2019-07-01	217	141	0.05981686479770154	1175.3232184278818
+Portfolio optimization with 5 month weight rebalancing 2019-06-03 00:00:00: : 6it [00:55, 11.75s/it]Portfolio optimization with 6 month weight rebalancing 2019-07-01 00:00:00: : 6it [00:55, 11.75s/it]Portfolio optimization with 6 month weight rebalancing 2019-07-01 00:00:00: : 6it [01:05, 10.84s/it]
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/runs/run.py", line 698, in <module>
+    main()
+    ~~~~^^
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/runs/run.py", line 670, in main
+    model_computation(
+    ~~~~~~~~~~~~~~~~~^
+        config=config,
+        ^^^^^^^^^^^^^^
+    ...<18 lines>...
+        # output_folder="spike_slab_posterior_alpha_99_bayessian_all"
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<@beartype(__main__.model_computation) at 0x13c5d43b0>", line 149, in model_computation
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/runs/run.py", line 450, in model_computation
+    (new_balance, pnl, cost, return_value), w_target, validation_table, test_table, split_info, alpha = results_by_nested_backtest_engine(
+                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        config=runtime_config,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    ...<10 lines>...
+        current_balance=current_balance,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/backtesting/engine_integration.py", line 142, in results_by_nested_backtest_engine
+    selection = engine.select(
+        etfs_list=etfs_list,
+    ...<4 lines>...
+        fallback_pred_returns=pred_returns,
+    )
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/backtesting/walk_forward_engine.py", line 679, in select
+    raw_candidates = self._build_candidates(
+        etfs_list=etfs_list,
+    ...<5 lines>...
+        fallback_pred_returns=fallback_pred_returns,
+    )
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/backtesting/walk_forward_engine.py", line 528, in _build_candidates
+    self._candidate_weights_from_optimizer(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        etfs_list=etfs_list,
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        previous_weights=previous_weights,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/backtesting/walk_forward_engine.py", line 367, in _candidate_weights_from_optimizer
+    opt = opt_cls(
+        opt_cfg,
+    ...<3 lines>...
+        w_prev,
+    )
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/optimizers/bayessian.py", line 50, in __init__
+    self.optimizer(
+    ~~~~~~~~~~~~~~^
+        args=args,
+        ^^^^^^^^^^
+        count_etf=self.pred_returns.shape[1],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        method_type=self.config.get("task_type", "cvar_returns")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "<@beartype(scripts.optimizers.base.BaseCVaR.optimizer) at 0x13c279c70>", line 68, in optimizer
+  File "/Users/mac/Downloads/portfolio_optimization_pipeline_v2/scripts/optimizers/base.py", line 249, in optimizer
+    result = minimize(
+        fun=objective,
+    ...<4 lines>...
+        options=options,
+    )
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/scipy/optimize/_minimize.py", line 796, in minimize
+    res = _minimize_slsqp(fun, x0, args, jac, bounds,
+                          constraints, callback=callback, **options)
+  File "/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/scipy/optimize/_slsqp_py.py", line 526, in _minimize_slsqp
+    slsqp(state_dict, fx, g, C, d, x, mult, xl, xu, buffer, indices)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=16
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=25
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=16
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=44
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=30
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=25
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=49
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=32
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=23
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=20
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=16
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=12
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=20
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=22
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=36
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=32
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=20
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=44
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=35
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+[RC-LP] method_type='return_cvar_constraint' sum=1.0000 active=28
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=93 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=93 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=93 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=87 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=87 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=87 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=218 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=218 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=218 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=149 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=149 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.08
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=149 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=216 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=133 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=133 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=133 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=132 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
+method_type='mean_cvar_sharpe' np.sum(weights)=1.000000 active=132 weights.shape=(218,)
+self.is_all_methods=False, self.min_weight=0.0, self.max_weight=0.12
+single_methods
