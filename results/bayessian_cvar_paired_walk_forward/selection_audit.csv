@@ -1,0 +1,84 @@
+date,engine_used,fallback_reason,selected_alpha
+2019-01-02,False,"""['BOND'] not in index""",0.5
+2019-02-01,False,"""['BOND'] not in index""",0.478755922504349
+2019-03-01,False,cannot access local variable 'x' where it is not associated with a value,0.5016913180866637
+2019-04-01,False,cannot access local variable 'x' where it is not associated with a value,0.5081575158334833
+2019-05-01,False,cannot access local variable 'x' where it is not associated with a value,0.5379264378717683
+2019-06-03,False,cannot access local variable 'x' where it is not associated with a value,0.5200110937952646
+2019-07-01,False,cannot access local variable 'x' where it is not associated with a value,0.5045714841941933
+2019-08-01,False,cannot access local variable 'x' where it is not associated with a value,0.5072418824935432
+2019-09-03,False,cannot access local variable 'x' where it is not associated with a value,0.5059701476856271
+2019-10-01,False,cannot access local variable 'x' where it is not associated with a value,0.5188156891926784
+2019-11-01,False,cannot access local variable 'x' where it is not associated with a value,0.5134293662881189
+2019-12-02,False,cannot access local variable 'x' where it is not associated with a value,0.5177838967011608
+2020-01-02,False,cannot access local variable 'x' where it is not associated with a value,0.5155812643586297
+2020-02-03,False,cannot access local variable 'x' where it is not associated with a value,0.5377998981595
+2020-03-02,False,cannot access local variable 'x' where it is not associated with a value,0.5259021274996724
+2020-04-01,False,cannot access local variable 'x' where it is not associated with a value,0.515474872142594
+2020-05-01,False,cannot access local variable 'x' where it is not associated with a value,0.49122250506332965
+2020-06-01,False,cannot access local variable 'x' where it is not associated with a value,0.5194568846873564
+2020-07-01,False,cannot access local variable 'x' where it is not associated with a value,0.5200407868695522
+2020-08-03,False,cannot access local variable 'x' where it is not associated with a value,0.5484167605783117
+2020-09-01,False,cannot access local variable 'x' where it is not associated with a value,0.5619495314983682
+2020-10-01,False,cannot access local variable 'x' where it is not associated with a value,0.5637848483764747
+2020-11-02,False,cannot access local variable 'x' where it is not associated with a value,0.5359126637913648
+2020-12-01,False,cannot access local variable 'x' where it is not associated with a value,0.5151998740188983
+2021-01-04,False,cannot access local variable 'x' where it is not associated with a value,0.5250841720842212
+2021-02-01,False,cannot access local variable 'x' where it is not associated with a value,0.5635294555380481
+2021-03-01,False,cannot access local variable 'x' where it is not associated with a value,0.5976869063204912
+2021-04-01,False,cannot access local variable 'x' where it is not associated with a value,0.5610871415515075
+2021-05-03,False,cannot access local variable 'x' where it is not associated with a value,0.5141746562810774
+2021-06-01,False,cannot access local variable 'x' where it is not associated with a value,0.47463699212055466
+2021-07-01,False,cannot access local variable 'x' where it is not associated with a value,0.49196360530985883
+2021-08-02,False,"""['EMB', 'IBB', 'IEF', 'TLT'] not in index""",0.5084841714026963
+2021-09-01,False,"""['BND', 'EMB', 'IBB', 'IEF', 'MCHI', 'TLT'] not in index""",0.5171179046907978
+2021-10-01,False,"""['BND', 'EMB', 'IBB', 'IEF', 'MBB', 'MCHI', 'SHY', 'TLT'] not in index""",0.514309796173248
+2021-11-01,False,"""['BND', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SHY', 'TLT', 'VXUS'] not in index""",0.5069014483792901
+2021-12-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5263791884370043
+2022-01-03,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5236796638000603
+2022-02-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5237293922853188
+2022-03-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5024554614428697
+2022-04-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5197027575313149
+2022-05-02,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5384769489693533
+2022-06-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5334568962973518
+2022-07-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.5262842384589852
+2022-08-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.48570216293186064
+2022-09-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VTWO', 'VXUS'] not in index""",0.4935150331233873
+2022-10-03,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VTWO', 'VXUS'] not in index""",0.4791014928182238
+2022-11-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VTWO', 'VXUS'] not in index""",0.49901747378419026
+2022-12-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VTWO', 'VXUS'] not in index""",0.5313354452337534
+2023-01-03,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VTWO', 'VXUS'] not in index""",0.533031272793918
+2023-02-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VTWO', 'VXUS'] not in index""",0.5317543531161755
+2023-03-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5127522023813379
+2023-04-03,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.4957782611159983
+2023-05-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5058861366799658
+2023-06-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.49490308608894285
+2023-07-03,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5093942708246376
+2023-08-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5344933401470315
+2023-09-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5483507107905042
+2023-10-02,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.526397038044744
+2023-11-01,False,"""['BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5087068330706298
+2023-12-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.48793715511579583
+2024-01-02,False,"""['BITO', 'BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5106605404875176
+2024-02-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5485216104013783
+2024-03-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'IBB', 'IEF', 'IEI', 'IJT', 'JEPQ', 'MBB', 'MCHI', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5570193607484558
+2024-04-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5586637348038226
+2024-05-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5584278151234281
+2024-06-03,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5380112446542908
+2024-07-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5108667783180187
+2024-08-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5057033860080417
+2024-09-03,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.514411921048974
+2024-10-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.49111558454459586
+2024-11-01,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5122341084474697
+2024-12-02,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5310793682935683
+2025-01-02,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5666322754301358
+2025-02-03,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'MDYV', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5572218984549524
+2025-03-03,False,"""['BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.560289059706689
+2025-04-01,False,"""['AVUS', 'AVUV', 'BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IGV', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5072193428475859
+2025-05-01,False,"""['AVUS', 'AVUV', 'BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5170630144517078
+2025-06-02,False,"""['AVUS', 'AVUV', 'BITO', 'BND', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5134844786670159
+2025-07-01,False,"""['AVUS', 'AVUV', 'BITB', 'BITO', 'BND', 'CGDV', 'DVY', 'EMB', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'MSTY', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5299011866102371
+2025-08-01,False,"""['AVUS', 'AVUV', 'BITB', 'BITO', 'BND', 'CGDV', 'DVY', 'EMB', 'ETHA', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'MSTY', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5547940155687398
+2025-09-02,False,"""['AVUS', 'AVUV', 'BITB', 'BITO', 'BND', 'CGDV', 'DVY', 'EMB', 'ETHA', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'MSTY', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5348471964560271
+2025-10-01,False,"""['AVUS', 'AVUV', 'BITB', 'BITO', 'BND', 'CGDV', 'DVY', 'EMB', 'ETHA', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'MSTY', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5208584082724769
+2025-11-03,False,"""['AVDV', 'AVUS', 'AVUV', 'BITB', 'BITO', 'BND', 'CGDV', 'CGGR', 'DVY', 'DYNF', 'EMB', 'ETHA', 'GBTC', 'IBB', 'IBIT', 'IEF', 'IEI', 'IJT', 'JAAA', 'JEPI', 'JEPQ', 'MBB', 'MCHI', 'MSTY', 'QQQM', 'SCZ', 'SGOV', 'SHY', 'SPYM', 'TBIL', 'TLT', 'VONE', 'VONG', 'VONV', 'VTWO', 'VXUS'] not in index""",0.5351692308767023
