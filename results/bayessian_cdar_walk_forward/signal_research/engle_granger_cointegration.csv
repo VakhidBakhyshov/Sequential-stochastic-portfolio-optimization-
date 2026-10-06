@@ -1,0 +1,11 @@
+signal_a,signal_b,engle_granger_stat,pvalue,n
+portfolio_risk_reward,asset_mean_liquidity_score,-5.853428757202345,3.3397824123193157e-06,29
+portfolio_risk_reward,asset_dispersion_liquidity_score,-5.843010145749753,3.513635293617238e-06,29
+portfolio_risk_reward,asset_dispersion_normalized_spike,-2.052866954904106,0.5010110414889135,29
+portfolio_risk_reward,asset_median_risk_reward_ratio,-2.761880290808453,0.17811527902360835,29
+asset_mean_liquidity_score,asset_dispersion_liquidity_score,-2.1134203187065115,0.46935411042954656,29
+asset_mean_liquidity_score,asset_dispersion_normalized_spike,-0.9525445437830643,0.9114842399579604,29
+asset_mean_liquidity_score,asset_median_risk_reward_ratio,-1.568477767145236,0.7340094311761308,29
+asset_dispersion_liquidity_score,asset_dispersion_normalized_spike,-1.0452281782924295,0.8939280262229888,29
+asset_dispersion_liquidity_score,asset_median_risk_reward_ratio,-1.5783212776147697,0.729952764517947,29
+asset_dispersion_normalized_spike,asset_median_risk_reward_ratio,-4.711580163995704,0.0005385111957811621,29
