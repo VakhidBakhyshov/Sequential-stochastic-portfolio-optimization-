@@ -1,0 +1,3 @@
+comparison,estimate,p_treatment_better,ci_2_5,ci_97_5,bootstrap_type,block_length,draws
+CDaR minus CVaR Sharpe,0.06706805562850726,0.7514,-0.10148173069756032,0.28631963917885705,paired_circular_block,6,5000
+CDaR minus CVaR max drawdown (positive=shallower),-0.0008139356192824465,0.3734,-0.03327484004192838,0.031098831777414297,paired_circular_block,6,5000
