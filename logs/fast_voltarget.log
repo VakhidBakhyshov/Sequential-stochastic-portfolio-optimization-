@@ -1,0 +1,12 @@
+
+=== FAST (daily) vol-target overlay vs STRONG ===
+                     Total   Ann    Vol  Sharpe  Sortino  MaxDD  Calmar
+STRONG (no overlay)   84.4  9.25  12.38   0.617    0.874 -18.36   0.503
+EWMA10d @ 14%         71.8  8.14  10.28   0.620    0.942 -15.79   0.516
+EWMA10d @ 12%         72.4  8.20   9.45   0.671    1.059 -13.30   0.616
+EWMA10d @ 10%         72.5  8.20   8.48   0.739    1.207 -10.66   0.769
+Roll21d @ 14%         72.9  8.24  10.31   0.627    0.971 -14.75   0.559
+Roll21d @ 12%         74.4  8.37   9.55   0.682    1.103 -12.60   0.664
+Roll21d @ 10%         73.6  8.30   8.57   0.742    1.233 -10.27   0.808
+
+Saved chosen overlay (Roll21d @ 12%) -> /Users/mac/Downloads/Sequential-stochastic-portfolio-optimization-/results/main_voltarget/pnl.csv and exposure.csv  final balance 1,743.52

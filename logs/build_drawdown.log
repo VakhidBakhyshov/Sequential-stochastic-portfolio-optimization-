@@ -1,0 +1,6 @@
+saved res_drawdown.png
+  Combined (managed)     worst =  -7.18%
+  Realized-vol overlay   worst = -12.60%
+  Dynamic base           worst = -18.36%
+  Static allocator       worst = -18.21%
+  1/N benchmark          worst = -21.30%

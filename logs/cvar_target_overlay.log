@@ -1,0 +1,35 @@
+cvar_model: min=0.0086 median=0.0193 max=0.0359 (NaNs=0)
+
+=== model-CVaR overlay sensitivity (self-scaling target) ===
+ CVAR*pct  K_MIN   Ann%   Vol%  Sharpe  MaxDD%
+    40     0.20    9.94  10.02  0.800  -12.66
+    40     0.30    9.94  10.02  0.800  -12.66
+    40     0.40    9.94  10.02  0.800  -12.66
+    50     0.20    9.98  10.25  0.787  -13.16
+    50     0.30    9.98  10.25  0.787  -13.16
+    50     0.40    9.98  10.25  0.787  -13.16
+    60     0.20    9.95  10.68  0.757  -14.15
+    60     0.30    9.95  10.68  0.757  -14.15
+    60     0.40    9.95  10.68  0.757  -14.15
+
+chosen overlay (CVAR*=CAUSAL expanding median, K_MIN=0.3): k_t min=0.34 median=0.99 max=1.00  de-risked(k<0.99)=43/83  final balance 1,759  -> /Users/mac/Downloads/Sequential-stochastic-portfolio-optimization-/results/main_cvartarget/pnl.csv
+corr(k_realized, k_modelCVaR) = +0.439  (low corr -> complementary)   combined final balance 1,695
+
+=== 3-way overlay comparison (Dynamic base, 83 OOS months) ===
+                             Ann     Vol  Sharpe  Sortino   MaxDD  Calmar  CVaR95  PSR%  DSR%
+arm                                                                                          
+STRONG (none)              9.246  12.376   0.617    0.874 -18.364   0.503  -6.722  94.1  91.3
+Realized-vol (backward)    8.369   9.553   0.682    1.103 -12.599   0.664  -4.624  96.0  93.9
+Model-CVaR (forward, NEW)  8.509   9.107   0.725    1.048 -11.039   0.771  -5.046  96.4  94.5
+Combined (fwd x bwd, NEW)  7.932   7.426   0.798    1.280  -7.181   1.105  -3.831  97.8  96.5
+
+=== Paired bootstrap: Model-CVaR (forward) vs Realized-vol (83 mo, B=5000) ===
+  Sharpe diff (treat - realized): obs=+0.043  P(treat better)=0.648
+  MaxDD  diff (+ = treat shallower): obs=+0.016  P(treat shallower)=0.589
+
+=== Paired bootstrap: Combined (fwd x bwd) vs Realized-vol (83 mo, B=5000) ===
+  Sharpe diff (treat - realized): obs=+0.117  P(treat better)=0.869
+  MaxDD  diff (+ = treat shallower): obs=+0.054  P(treat shallower)=0.977
+
+Forward-signal check: corr(cvar_model_t, next-month realized loss_t) = +0.318
+saved _cvar_timing_diagnostic.png  and  overlay_3way_metrics.csv

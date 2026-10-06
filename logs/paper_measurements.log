@@ -1,0 +1,48 @@
+================================================================================================
+(a) DIAL CORRELATION corr(k_fast, k_slow) BY SUBSAMPLE  [H2]
+================================================================================================
+  full sample (n=83)            : +0.439
+  2020 (n=12)                    : +0.069
+  2022 (n=12)                    : -0.324
+  stress pooled 2020+2022 (n=24) : +0.231
+  calm remainder (n=59)           : +0.416
+
+================================================================================================
+(b) FRACTION OF DATES WITH beta* = beta_t  [H5]  (beta*=0.95 fixed; beta_t adaptive)
+================================================================================================
+  months: 83 | beta_t range [0.920, 0.971]
+  fraction with |beta_t - 0.95| < 0.005 : 0.217
+  fraction beta_t > 0.95 (deeper than beta*): 0.253 | beta_t < 0.95: 0.530
+
+================================================================================================
+(c) SHUFFLED-k PLACEBO  [H4]  (distribution-matched, timing destroyed; 2000 permutations)
+================================================================================================
+  dynamic:              MaxDD  -7.18%   Sharpe 0.798
+  placebo distribution: MaxDD mean -14.93% [5th -21.89, 95th -8.52]   Sharpe mean 0.531
+  P(dynamic MDD shallower than placebo) = 0.987
+  P(dynamic Sharpe > placebo)           = 0.954
+
+================================================================================================
+(d) OVERLAY TURNOVER AND BREAK-EVEN COST  [H7]
+================================================================================================
+  fast (k_rv)    mean|dk| = 0.1093/mo   annual exposure turnover = 1.31x
+  slow (k_mc)    mean|dk| = 0.0318/mo   annual exposure turnover = 0.38x
+  combined       mean|dk| = 0.0834/mo   annual exposure turnover = 1.00x
+  exposure moves charged at 10 bp per unit: HDRC Sharpe 0.798 vs base 0.617
+  break-even cost of the exposure moves (HDRC Sharpe = base Sharpe): 150 bps per unit turnover
+
+================================================================================================
+(f) PROP 5(b) CHECK: predicted mechanical MDD = kbar x MDD(1)
+================================================================================================
+  kbar = 0.701   MDD(1) = -18.36%
+  predicted mechanical MDD = kbar*MDD(1) = -12.87%
+  measured constant-k MDD                = -12.49%
+  dynamic MDD                            = -7.18%
+
+================================================================================================
+(g) SIGN VIOLATIONS OF THE UNCENTRED SIGNAL (our one-day-scale pipeline)  [H5]
+================================================================================================
+  months with cvar_model <= 0 : 0 of 83
+  cvar_model: mean 0.0197  min 0.0086
+
+saved fig_exposure_paths.png
