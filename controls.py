@@ -14,6 +14,7 @@ Run from the package root: python controls.py
 from __future__ import annotations
 import numpy as np, pandas as pd
 from pathlib import Path
+from overlay_arms import overlay
 
 ROOT = Path(__file__).resolve().parent; RES = ROOT / "results"
 DAILY = ROOT / "datasets" / "excel" / "new_etf_returns.csv"
@@ -87,13 +88,13 @@ def main():
     cv = fc.set_index("date")["cvar_model"].astype(float).reindex(rs.index)
     k_mc = (cv.expanding(min_periods=6).median().bfill() / cv).clip(KMIN, KMAX)
     k_comb = (k_rv * k_mc).clip(KMIN, KMAX)
-    r_comb = k_comb * rs + (1 - k_comb) * RF / 12
-    r_vt = k_rv * rs + (1 - k_rv) * RF / 12
+    r_comb = overlay(k_comb, rs)
+    r_vt = overlay(k_rv, rs)
 
     # ---------------- CONTROL B: constant exposure at the SAME average gross exposure ----------------
     kbar = float(k_comb.mean()); kbar_rv = float(k_rv.mean())
-    r_const = kbar * rs + (1 - kbar) * RF / 12
-    r_const_rv = kbar_rv * rs + (1 - kbar_rv) * RF / 12
+    r_const = overlay(pd.Series(kbar, index=rs.index), rs)
+    r_const_rv = overlay(pd.Series(kbar_rv, index=rs.index), rs)
     print("=" * 96)
     print("CONTROL B - does the gain come from TIMING or merely from holding less risk?")
     print("=" * 96)
@@ -147,9 +148,9 @@ def main():
     onen_daily = pd.concat(parts).sort_index()
 
     k_1n = vol_dial(onen_daily, dts).reindex(one_n.index)
-    r_1n_vt = k_1n * one_n + (1 - k_1n) * RF / 12                       # 1/N with its OWN vol dial
+    r_1n_vt = overlay(k_1n, one_n)                                       # 1/N with its OWN vol dial
     kc = k_comb.reindex(one_n.index).fillna(KMAX)
-    r_1n_comb = kc * one_n + (1 - kc) * RF / 12                          # 1/N with OUR combined path
+    r_1n_comb = overlay(kc, one_n)                                       # 1/N with OUR combined path
 
     rows2 = {"1/N (unmanaged)": metrics(one_n),
              f"1/N + own realized-vol dial (avg k={k_1n.mean():.2f})": metrics(r_1n_vt),

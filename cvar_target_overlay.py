@@ -6,7 +6,7 @@ posterior-predictive tail measure that the allocator constrains. This is an opti
 model-consistent timing signal.
 
   k_t = clip( CVAR* / CVaR_model,t , K_MIN, 1 )         # CVaR_model,t known at the START of month t
-  r_net,t = k_t * r_t + (1 - k_t) * (RISK_FREE / 12)     # de-risked slice -> cash / T-bills
+  r_net,t = k_t * r_t + (1 - k_t) * (RISK_FREE / 12) - c |k_t - k_{t-1}|   # cash slice; exposure move costed
 
 CVaR_model,t is written by run.py to results/main_dyn_strong/forecast_risk.csv (causal).
 
@@ -25,6 +25,7 @@ from pathlib import Path
 from scipy.stats import norm, skew, kurtosis
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from overlay_arms import overlay
 
 ROOT = Path(__file__).resolve().parent
 RES = ROOT / "results"
@@ -71,12 +72,11 @@ def max_dd(r):
 
 def build_overlay(r_book: pd.Series, cvar: pd.Series, cvar_star: float, k_min: float) -> pd.Series:
     """k_t from the forward model CVaR; month t uses cvar_t known at t's rebalance (causal)."""
-    out = {}
+    ks = {}
     for dt in r_book.index:
         c = float(cvar.get(dt, np.nan))
-        k = np.clip(cvar_star / c, k_min, K_MAX) if (c == c and c > 0) else K_MAX
-        out[dt] = k * r_book[dt] + (1 - k) * RF / 12
-    return pd.Series(out)
+        ks[dt] = float(np.clip(cvar_star / c, k_min, K_MAX)) if (c == c and c > 0) else K_MAX
+    return overlay(pd.Series(ks), r_book)
 
 
 def main():
@@ -90,7 +90,7 @@ def main():
     #      month t only; NOT the full-sample median). This is the model-CVaR (forward) overlay we save. ----
     cvar_star_causal = cvar.expanding(min_periods=6).median().bfill()
     k_mc = (cvar_star_causal / cvar).clip(K_MIN_DEFAULT, K_MAX)
-    chosen = k_mc * r_strong + (1 - k_mc) * RF / 12
+    chosen = overlay(k_mc, r_strong)
 
     # ---- sensitivity sweep (DIAGNOSTIC ONLY; full-sample percentiles, not used for the saved arm) ----
     print("\n=== model-CVaR overlay sensitivity (self-scaling target) ===")
@@ -111,6 +111,7 @@ def main():
     for dt, rr in full.items():
         bal *= (1 + rr); recs.append((dt, bal, rr))
     pd.DataFrame(recs, columns=["Date", "Balance", "Returns"]).set_index("Date").to_csv(out_dir / "pnl.csv")
+    k_mc.rename("k").rename_axis("Date").to_csv(out_dir / "exposure.csv")
     print(f"\nchosen overlay (CVAR*=CAUSAL expanding median, K_MIN={K_MIN_DEFAULT}): k_t min={k_mc.min():.2f} "
           f"median={k_mc.median():.2f} max={k_mc.max():.2f}  de-risked(k<0.99)={int((k_mc<0.99).sum())}/{len(k_mc)}  "
           f"final balance {bal:,.0f}  -> {out_dir/'pnl.csv'}")
@@ -119,14 +120,15 @@ def main():
     #      k_combined = k_realized * k_modelCVaR  (both <= 1, both CAUSAL). The two signals are weakly
     #      correlated, so the combination captures complementary risk episodes. ----
     r_vt = load_pnl(RES / "main_voltarget").iloc[1:].reindex(r_strong.index)
-    k_rv = ((r_vt - RF / 12) / (r_strong - RF / 12)).clip(K_MIN_DEFAULT, K_MAX)   # back out realized-vol k (causal)
+    k_rv = pd.read_csv(RES / "main_voltarget" / "exposure.csv", index_col=0, parse_dates=True)["k"].reindex(r_strong.index)
     k_comb = (k_rv * k_mc).clip(K_MIN_DEFAULT, K_MAX)                              # k_mc is the causal model-CVaR k
-    r_comb = (k_comb * r_strong + (1 - k_comb) * RF / 12)
+    r_comb = overlay(k_comb, r_strong)
     comb_dir = RES / "main_combined"; comb_dir.mkdir(parents=True, exist_ok=True)
     full_c = pd.concat([pd.Series({load_pnl(STRONG).index[0]: 0.0}), r_comb]); bal = 1000.0; rc = []
     for dt, rr in full_c.items():
         bal *= (1 + rr); rc.append((dt, bal, rr))
     pd.DataFrame(rc, columns=["Date", "Balance", "Returns"]).set_index("Date").to_csv(comb_dir / "pnl.csv")
+    k_comb.rename("k").rename_axis("Date").to_csv(comb_dir / "exposure.csv")
     print(f"corr(k_realized, k_modelCVaR) = {float(np.corrcoef(k_rv, k_mc)[0,1]):+.3f}  "
           f"(low corr -> complementary)   combined final balance {bal:,.0f}")
 
