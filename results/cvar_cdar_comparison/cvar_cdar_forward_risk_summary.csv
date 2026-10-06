@@ -1,0 +1,3 @@
+arm,months,mean_cvar_model_centered,std_cvar_model_centered,mean_cdar_model_centered,std_cdar_model_centered,mean_target_risky_exposure,std_target_risky_exposure,mean_forward_cvar_timer,std_forward_cvar_timer,mean_forward_cdar_timer,std_forward_cdar_timer,mean_forward_risk_timer,std_forward_risk_timer,mean_overlay_fraction,std_overlay_fraction
+CVaR,83,0.1432319229264476,0.04453248694589931,0.12091392924379976,0.03774611947718038,1.0,2.4520724578557595e-17,,,,,,,,
+CDaR,83,0.12913216485373338,0.03438217918347927,0.10886973937156255,0.02885001197729918,1.0,4.24711408084647e-17,,,,,,,,

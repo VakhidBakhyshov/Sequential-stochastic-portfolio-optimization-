@@ -1,0 +1,105 @@
+{
+  "brownian": {
+    "mc_average_drawdown": 0.09986052960695817,
+    "continuous_exact": 0.10638460810704872,
+    "absolute_error": 0.006524078500090555
+  },
+  "brownian_terminal_cdar": [
+    {
+      "alpha": 0.5,
+      "mc_terminal_cdar": 0.2484875061015995,
+      "exact_terminal_cdar": 0.2542212581472856,
+      "absolute_cdar_error": 0.005733752045686075,
+      "mc_terminal_var": 0.12888850741681526,
+      "exact_terminal_var": 0.13489795003921634,
+      "absolute_var_error": 0.006009442622401079
+    },
+    {
+      "alpha": 0.8,
+      "mc_terminal_cdar": 0.3464468575496674,
+      "exact_terminal_cdar": 0.3509966638649734,
+      "absolute_cdar_error": 0.004549806315305993,
+      "mc_terminal_var": 0.25097248748520545,
+      "exact_terminal_var": 0.2563103131089201,
+      "absolute_var_error": 0.005337825623714654
+    },
+    {
+      "alpha": 0.9,
+      "mc_terminal_cdar": 0.4084867230172372,
+      "exact_terminal_cdar": 0.4125425615014855,
+      "absolute_cdar_error": 0.004055838484248286,
+      "mc_terminal_var": 0.32421932759726424,
+      "exact_terminal_var": 0.3289707253902944,
+      "absolute_var_error": 0.004751397793030188
+    },
+    {
+      "alpha": 0.95,
+      "mc_terminal_cdar": 0.4636265944193245,
+      "exact_terminal_cdar": 0.4675605584402827,
+      "absolute_cdar_error": 0.003933964020958192,
+      "mc_terminal_var": 0.3898301088252988,
+      "exact_terminal_var": 0.3919927969080108,
+      "absolute_var_error": 0.0021626880827120276
+    },
+    {
+      "alpha": 0.975,
+      "mc_terminal_cdar": 0.5129851626537981,
+      "exact_terminal_cdar": 0.517734402541992,
+      "absolute_cdar_error": 0.004749239888193868,
+      "mc_terminal_var": 0.4438327524648142,
+      "exact_terminal_var": 0.4482805455209894,
+      "absolute_var_error": 0.004447793056175209
+    },
+    {
+      "alpha": 0.99,
+      "mc_terminal_cdar": 0.5732787861383426,
+      "exact_terminal_cdar": 0.5783897210766963,
+      "absolute_cdar_error": 0.005110934938353684,
+      "mc_terminal_var": 0.509901920622224,
+      "exact_terminal_var": 0.5151658607097801,
+      "absolute_var_error": 0.0052639400875561515
+    }
+  ],
+  "path_order_counterexample": {
+    "terminal_a": 0.0,
+    "terminal_b": 0.0,
+    "cdar95_a": 0.2,
+    "cdar95_b": 0.02,
+    "avgdd_a": 0.10000000000000002,
+    "avgdd_b": 0.01
+  },
+  "risk_geometry_ranking_reversal": {
+    "terminal_loss_a": -0.0,
+    "terminal_loss_b": 0.05,
+    "cdar_a": 0.2,
+    "cdar_b": 0.05,
+    "terminal_prefers_a": 1.0,
+    "cdar_prefers_b": 1.0
+  },
+  "lp_diagnostics": {
+    "lp_success": true,
+    "risk_measure": "CDaR",
+    "cdar_level": 0.95,
+    "cdar_budget": 0.05634004525367104,
+    "cdar_value": 0.056340045253670784,
+    "cdar_constraint_slack": 0.0,
+    "cdar_constraint_binding": true,
+    "cdar_budget_dual_scipy_min": -0.30426635286896664,
+    "cdar_budget_shadow_price_max": 0.30426635286896664,
+    "objective_expected_return": 0.01456216838355814,
+    "target_turnover_l1": 0.19666378908280532,
+    "scenario_paths": 180,
+    "path_horizon": 21
+  },
+  "weights": [
+    0.12500000000000003,
+    0.12500000000000003,
+    0.1535657236085178,
+    0.12500000000000003,
+    0.07438218130057286,
+    0.14887497622701323,
+    0.1708911947058716,
+    0.07728592415802454
+  ],
+  "note": "Synthetic/analytical diagnostics only; no new historical ETF CDaR performance is claimed without the frozen point-in-time data vintage."
+}
