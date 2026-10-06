@@ -1,0 +1,9 @@
+strategy,Cumul%,Ann%,Vol%,Sharpe,Sortino,MaxDD%,Calmar,CVaR95%,PSR%,DSR%
+"Static (alloc, no overlay)",96.7,10.27,12.82,0.673,1.044,-18.21,0.564,-6.37,95.7,90.5
+Dynamic base (no overlay),84.4,9.25,12.38,0.617,0.874,-18.36,0.503,-6.72,94.1,87.6
++ Realized-vol overlay,74.4,8.37,9.55,0.682,1.103,-12.6,0.664,-4.62,96.0,91.0
++ Model-CVaR overlay (causal),75.9,8.51,9.11,0.725,1.048,-11.04,0.771,-5.05,96.4,91.9
+"+ Combined (Primary, causal)",69.5,7.93,7.43,0.798,1.28,-7.18,1.105,-3.83,97.8,94.6
+Benchmark 1/N,103.2,10.8,14.7,0.638,0.846,-21.3,0.507,-8.8,94.2,88.0
+Benchmark Markowitz max-Sharpe,30.1,3.88,6.45,0.313,0.312,-17.76,0.219,-4.54,78.4,64.9
+Benchmark Markowitz min-variance,15.0,2.04,2.17,0.019,0.015,-7.04,0.289,-1.68,51.9,35.6

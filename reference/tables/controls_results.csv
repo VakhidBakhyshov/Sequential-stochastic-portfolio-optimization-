@@ -1,0 +1,10 @@
+,Ann,Vol,Sharpe,Sortino,MaxDD,Calmar,CVaR95
+"Dynamic base (unscaled, k=1)",9.2463,12.3755,0.6167,0.8744,-18.3644,0.5035,-6.7222
+Constant exposure k=0.70 (matched),7.2052,8.6727,0.6167,0.8985,-12.4944,0.5767,-4.661
+DYNAMIC combined overlay (same avg k),7.9322,7.4264,0.7984,1.2799,-7.1809,1.1046,-3.8312
+Constant exposure k=0.84 (matched to RV),8.1627,10.3847,0.6167,0.887,-15.229,0.536,-5.614
+DYNAMIC realized-vol overlay (same avg k),8.369,9.5528,0.6818,1.1034,-12.5995,0.6642,-4.6238
+1/N (unmanaged),10.7952,14.6964,0.6377,0.846,-21.3003,0.5068,-8.7954
+1/N + own realized-vol dial (avg k=0.87),8.9464,11.4814,0.6314,1.0293,-15.6646,0.5711,-6.1353
+1/N + our combined exposure path (avg k=0.70),7.1657,9.8231,0.5519,0.6943,-17.319,0.4137,-5.9026
+Our combined (managed) strategy,7.9322,7.4264,0.7984,1.2799,-7.1809,1.1046,-3.8312

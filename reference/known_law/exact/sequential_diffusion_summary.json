@@ -1,0 +1,22 @@
+{
+  "label": "known_distribution_sequential_diffusion_analysis",
+  "oracle_success": true,
+  "oracle_exact_cvar": 0.05940067542142172,
+  "oracle_budget": 0.05940067542142172,
+  "oracle_objective": 0.004822323485432564,
+  "largest_scenario_count": 5000,
+  "largest_scenario_mean_abs_cvar_error": 0.00043031878642678145,
+  "largest_scenario_mean_weight_l1_distance_to_oracle": 0.008464335235267318,
+  "correlation_derivative_analytic": 0.0004570667172075207,
+  "correlation_derivative_finite_difference": 0.0004570667171133191,
+  "correlation_derivative_abs_error": 9.420161048781517e-14,
+  "centered_cvar_max_shift_difference": 0.0,
+  "uncentered_cvar_shift_slope": -1.0000000000000004,
+  "estimation_windows": [
+    63,
+    126,
+    252,
+    504,
+    756
+  ]
+}

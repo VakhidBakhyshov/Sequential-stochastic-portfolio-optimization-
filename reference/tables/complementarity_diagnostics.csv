@@ -1,0 +1,24 @@
+diagnostic,value
+leadlag_lstar,-1
+corr_at_lstar,0.4699097108551928
+corr_at_0,0.4397107382892686
+corr_lag_m1,0.4699097108551928
+corr_lag_p1,0.43629553559829143
+jaccard_fast_slow,0.13333333333333333
+n_fast,17
+n_slow,17
+n_both,4
+n_either,30
+first_fast_2020,2020-05
+first_slow_2020,2020-11
+first_fast_2022,2022-03
+first_slow_2022,2022-01
+rvol_by_kF_low_mid_high,"[20.67, 11.83, 10.09]"
+rvol_by_kS_low_mid_high,"[16.75, 14.35, 11.63]"
+corner_low_low,19.691129008969043
+corner_high_high,10.16410129957093
+mean_k_product,0.6988328297623194
+mean_k_geometric,0.8107032088200536
+months_at_floor_product,8
+months_both_dials_below_0_8,23
+months_only_one_below_0_8,20
