@@ -1,0 +1,29 @@
+{
+  "return_type": "log-returns",
+  "scenario_return_type": "log-returns",
+  "horizon": 21,
+  "optimizer": {
+    "type": "cdar",
+    "min_weight": 0.0,
+    "max_weight": 0.12,
+    "task_type": "return_cdar_constraint",
+    "confidence_level": 0.95,
+    "cdar_confidence_level": 0.95,
+    "cdar_budget_mult": 1.0,
+    "turnover_penalty": 0.002,
+    "penalty_type": "L1",
+    "is_all_methods": false
+  },
+  "smart_signals_enabled": true,
+  "execution_policy": "policy_C_split",
+  "execution_policy_description": "previous target is the optimizer/turnover anchor; previous executed holdings are the economic state used for actual trading, realised returns and transaction costs",
+  "execution_state_policy": "policy_C_split_previous_target_anchor_actual_executed_holdings",
+  "optimizer_turnover_reference": "previous_target",
+  "economic_trade_start": "previous_executed_holdings",
+  "return_booking_state": "executed_holdings_full_universe_including_names_leaving_feasible_set",
+  "transaction_cost_convention": "c_bps times gross L1 traded notional (buys plus sells)",
+  "transaction_cost_rate_per_traded_unit": 0.001,
+  "transaction_cost_bps_per_traded_unit": 10.0,
+  "exposure_overlay_costs_in_core_run": false,
+  "note": "Numerical results are valid only when generated from point-in-time input data."
+}

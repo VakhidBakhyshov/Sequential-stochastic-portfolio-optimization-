@@ -1,0 +1,7 @@
+step,added_signal,accepted_set,oos_mse,marginal_oos_mse_improvement,relative_mse_improvement,oos_predictions,fwl_population_mse_gain_descriptive,accepted
+0,__causal_mean_baseline__,[],0.0005346364757601136,,0.0,59,,True
+1,asset_mean_garch_vol_forecast,"[""asset_mean_garch_vol_forecast""]",0.0005135308536329468,2.1105622127166835e-05,0.0394765847151752,59,6.510466867015191e-05,True
+2,asset_mean_net_move,"[""asset_mean_garch_vol_forecast"", ""asset_mean_net_move""]",0.0005073083316451753,6.22252198777143e-06,0.012117133651757296,59,2.1318484309137954e-05,True
+3,composite_quality,"[""asset_mean_garch_vol_forecast"", ""asset_mean_net_move"", ""composite_quality""]",0.0005023097115867683,4.998620058407053e-06,0.009853218933339377,59,7.912488112725131e-06,True
+4,forward_cdar_timer,"[""asset_mean_garch_vol_forecast"", ""asset_mean_net_move"", ""composite_quality"", ""forward_cdar_timer""]",0.0005014229023808287,8.868092059396331e-07,0.0017654629912255775,59,8.472061149832364e-06,True
+5,forward_risk_timer,"[""asset_mean_garch_vol_forecast"", ""asset_mean_net_move"", ""composite_quality"", ""forward_cdar_timer""]",0.0005014304923867175,-7.590005888873617e-09,-1.5136935016001799e-05,59,1.6556342823418932e-29,False

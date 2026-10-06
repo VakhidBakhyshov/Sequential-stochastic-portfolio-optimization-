@@ -1,0 +1,7 @@
+step,added_signal,accepted_set,oos_mse,marginal_oos_mse_improvement,relative_mse_improvement,oos_predictions,fwl_population_mse_gain_descriptive,accepted
+0,__causal_mean_baseline__,[],0.0016713139599376825,,0.0,59,,True
+1,forward_cvar_timer,"[""forward_cvar_timer""]",0.0015840875103282496,8.722644960943294e-05,0.05219034346645756,59,6.796135825161529e-05,True
+2,portfolio_scenario_mean,"[""forward_cvar_timer"", ""portfolio_scenario_mean""]",0.0014892984038370788,9.478910649117077e-05,0.0598383017814015,59,8.998757871783998e-05,True
+3,forward_cdar_timer,"[""forward_cvar_timer"", ""portfolio_scenario_mean"", ""forward_cdar_timer""]",0.001431436675200558,5.786172863652089e-05,0.03885166900564989,59,5.803002961724247e-05,True
+4,asset_mean_net_move,"[""forward_cvar_timer"", ""portfolio_scenario_mean"", ""forward_cdar_timer"", ""asset_mean_net_move""]",0.0014259417708149588,5.494904385599164e-06,0.0038387338265098423,59,4.44501767731999e-05,True
+5,forward_risk_timer,"[""forward_cvar_timer"", ""portfolio_scenario_mean"", ""forward_cdar_timer"", ""asset_mean_net_move""]",0.0014263251947092136,-3.8342389425483417e-07,-0.00026889169116330644,59,2.799680616483053e-27,False
