@@ -1,0 +1,4 @@
+step,added_signal,accepted_set,oos_mse,marginal_oos_mse_improvement,relative_mse_improvement,oos_predictions,fwl_population_mse_gain_descriptive,accepted
+0,__causal_mean_baseline__,[],0.0008592628783962066,,0.0,59,,True
+1,asset_mean_garch_vol_forecast,"[""asset_mean_garch_vol_forecast""]",0.0007142094218893547,0.00014505345650685198,0.16881150129235276,59,0.0002141350065751278,True
+2,portfolio_kelly,"[""asset_mean_garch_vol_forecast""]",0.0007151000805252882,-8.9065863593358e-07,-0.0012470552874777965,59,1.4127012877433334e-05,False

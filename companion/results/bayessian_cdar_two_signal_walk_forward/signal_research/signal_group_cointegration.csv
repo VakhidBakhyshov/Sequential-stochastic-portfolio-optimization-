@@ -1,0 +1,2 @@
+group_a,group_b,signals,n,system_dimension,johansen_trace_rank_95,trace_statistics,trace_critical_values_95
+asset_quality,model_risk,"[""asset_mean_liquidity_score"", ""forecast_portfolio_scenario_mean""]",82,2,1,"[12.035093383543247, 3.902166130934882]","[15.4943, 3.8415]"

@@ -1,0 +1,38 @@
+{
+  "eligible_i1_signals": [
+    "portfolio_risk_reward",
+    "asset_mean_liquidity_score",
+    "asset_dispersion_liquidity_score",
+    "forecast_portfolio_scenario_mean",
+    "robust_selection_score"
+  ],
+  "performed": true,
+  "trace_statistics": [
+    67.71366560024482,
+    36.89380508432981,
+    15.303896596559959,
+    3.570779995823558,
+    0.5486587760697158
+  ],
+  "trace_critical_values_95": [
+    69.8189,
+    47.8545,
+    29.7961,
+    15.4943,
+    3.8415
+  ],
+  "max_eigen_statistics": [
+    30.819860515915014,
+    21.589908487769847,
+    11.733116600736402,
+    3.022121219753842,
+    0.5486587760697158
+  ],
+  "max_eigen_critical_values_95": [
+    33.8777,
+    27.5858,
+    21.1314,
+    14.2639,
+    3.8415
+  ]
+}
