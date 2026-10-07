@@ -121,5 +121,5 @@ configuration keys `require_recent_price_days` and `require_history_days`.
 
 MIT licence (see LICENSE). Please cite the paper when using this code:
 
-Vukovic, D., Bakhishov, V., Zinovyev, V., Dalal, A. (2026). Sequential Stochastic Optimization of ETF Portfolios with
+Sequential Stochastic Optimization of ETF Portfolios with
 Horizon-Diversified Risk Control. [Journal, volume, pages].
