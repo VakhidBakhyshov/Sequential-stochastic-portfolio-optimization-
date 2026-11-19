@@ -25,8 +25,8 @@ def dd(r):
     eq = (1 + r).cumprod(); return (eq / eq.cummax() - 1) * 100
 
 
-arms = {"Combined (managed)": ("main_combined", rs.NAVY, 2.4),
-        "Realized-vol overlay": ("main_voltarget", rs.BLUE, 1.6),
+arms = {"HDRC": ("main_combined", rs.NAVY, 2.4),
+        "Fast channel only": ("main_voltarget", rs.BLUE, 1.6),
         "Dynamic base": ("main_dyn_strong", rs.GREEN, 1.4),
         "Static allocator": ("main_dyn_off", rs.GREY, 1.4),
         "1/N benchmark": ("__1n__", rs.ORANGE, 1.6)}
@@ -34,7 +34,7 @@ arms = {"Combined (managed)": ("main_combined", rs.NAVY, 2.4),
 fig, ax = plt.subplots(figsize=(12, 5))
 for lbl, (f, col, lw) in arms.items():
     d = dd(oneN() if f == "__1n__" else load_pnl(f))
-    if lbl == "Combined (managed)":
+    if lbl == "HDRC":
         ax.fill_between(d.index, 0, d.values, color=rs.NAVY, alpha=0.08)
     ax.plot(d.index, d.values, color=col, lw=lw, label=lbl)
 ax.axhline(0, color=rs.GRID, lw=1)

@@ -3,7 +3,7 @@
 Outputs (package root):
   res_composition_static.png, res_composition_dynamic.png  (monthly 100% stacked composition)
   res_performance.png        (growth of $1, key arms + 1/N)
-  res_turnover.png           (monthly turnover of the held book, wealth bought plus sold)
+  res_turnover.png           (monthly one-way turnover of the held book)
   res_dynamic_params.png     (alpha, lambda, score over time)
 and prints ETF-count + turnover statistics used in the write-up.
 """
@@ -138,8 +138,8 @@ def main():
               "Book scaled by the combined exposure; de-risked slice in cash / T-bills", "res_composition_dynamic.png")
 
     # ---- performance (growth of $1) ----
-    arms = {"Combined (managed)": ("main_combined", rs.NAVY, 2.4),
-            "Realized-vol overlay": ("main_voltarget", rs.BLUE, 1.6),
+    arms = {"HDRC": ("main_combined", rs.NAVY, 2.4),
+            "Fast channel only": ("main_voltarget", rs.BLUE, 1.6),
             "Dynamic base": ("main_dyn_strong", rs.GREEN, 1.4),
             "Static allocator": ("main_dyn_off", rs.GREY, 1.4),
             "1/N benchmark": ("__1n__", rs.ORANGE, 1.6)}
@@ -150,7 +150,7 @@ def main():
     for lbl, (f, col, lw) in arms.items():
         r = oneN if f == "__1n__" else load_pnl(f).iloc[1:]
         eq = (1 + r).cumprod();
-        if lbl == "Combined (managed)": ax.fill_between(eq.index, 1, eq.values, color=rs.NAVY, alpha=0.07)
+        if lbl == "HDRC": ax.fill_between(eq.index, 1, eq.values, color=rs.NAVY, alpha=0.07)
         ax.plot(eq.index, eq.values, color=col, lw=lw, label=f"{lbl}")
     ax.axhline(1, color=rs.GRID, lw=1); ax.set_ylabel("Growth of \\$1"); ax.legend(loc="upper left", fontsize=9)
     ax.xaxis.set_major_locator(mdates.YearLocator()); ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
@@ -159,11 +159,15 @@ def main():
 
     # ---- turnover chart ----
     fig, ax = plt.subplots(figsize=(12, 3.8))
-    colv = [rs.RED if v >= 0.20 else rs.BLUE for v in tn.values]
-    ax.bar(tn.index, tn.values * 100, width=20, color=colv, linewidth=0)
-    ax.set_ylabel("Turnover (% of wealth bought plus sold)"); ax.grid(axis="y")
-    ax.xaxis.set_major_locator(mdates.YearLocator()); ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
-    rs.title(ax, "Monthly portfolio turnover", f"Median {tn.median()*100:.0f}%; large rebalances (>=20%, red) in {int((tn>=0.20).sum())} of {len(tn)} months")
+    one_way_turnover = tn / 2
+    highlight = one_way_turnover >= 0.10
+    colors = np.where(highlight, "#D55E00", rs.BLUE)
+    ax.bar(one_way_turnover.index, 100 * one_way_turnover, width=20, color=colors, linewidth=0)
+    ax.set_ylabel("One-way turnover (%)")
+    ax.grid(axis="y")
+    ax.xaxis.set_major_locator(mdates.YearLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
+    rs.title(ax, "Monthly one-way turnover", "Orange bars indicate turnover of 10% or more.")
     fig.tight_layout(); fig.savefig(ROOT / "res_turnover.png", dpi=150, bbox_inches="tight"); plt.close(fig)
 
     # ---- dynamic parameters ----

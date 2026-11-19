@@ -1,4 +1,4 @@
-"""Regenerate _universe_eligible_count.png and signal_decorrelation.png (style via report_style API)."""
+"""Regenerate universe_eligible_count.png and signal_decorrelation.png (style via report_style API)."""
 from __future__ import annotations
 import sys
 sys.stdout.reconfigure(encoding="utf-8")
@@ -42,7 +42,9 @@ ax.xaxis.set_major_locator(mdates.YearLocator())
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 rs.title(ax, "Eligible ETFs per month", f"median {int(s.median())}, range {s.min()}-{s.max()}")
 fig.tight_layout()
-fig.savefig(ROOT / "_universe_eligible_count.png", dpi=300, bbox_inches="tight")
+fig.savefig(ROOT / "universe_eligible_count.png", dpi=300, bbox_inches="tight")
+# Preserve the filename used by earlier versions of the package.
+(ROOT / "_universe_eligible_count.png").write_bytes((ROOT / "universe_eligible_count.png").read_bytes())
 plt.close(fig)
 print(f"universe chart: n={len(s)} months, median {int(s.median())}, range [{s.min()}, {s.max()}]")
 
