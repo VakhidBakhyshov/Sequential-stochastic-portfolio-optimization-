@@ -42,7 +42,7 @@ def get_sheet(filename, sheetname=None):
 
     df['Date'] = pd.to_datetime(df['Date'])
     df = df.set_index('Date')
-    df = df.replace({"No data": np.nan, "Cbonds authorization is required": np.nan})
+    df = df.replace({"No data": np.nan})
     df = df.infer_objects(copy=False)
     df = df.sort_index()
     df = df.astype(float)
